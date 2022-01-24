@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.text.*?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<HBox alignment="CENTER" prefHeight="500.0" prefWidth="320.0" spacing="0" xmlns="http://javafx.com/javafx/8"
+      xmlns:fx="http://javafx.com/fxml/1" fx:controller="ru.pb.netchatclient.ChatController">
+    <children>
+        <VBox fx:id="leftPane" alignment="CENTER">
+
+            <HBox.margin>
+                <Insets bottom="5.0" left="5.0" top="5.0"/>
+            </HBox.margin>
+            <Button fx:id="tmpButton" text="testIncomMsg" onAction="#receiveMessage">
+                <HBox.margin>
+                    <Insets bottom="5.0" left="5.0" top="5.0"/>
+                </HBox.margin>
+            </Button>
+            <ListView fx:id="contactList" minHeight="200.0" prefWidth="200.0">
+            </ListView>
+        </VBox>
+
+
+        <VBox alignment="CENTER">
+            <padding>
+                <Insets left="5.0" right="5.0"/>
+            </padding>
+            <children>
+                <Label fx:id="titleText" minWidth="310.0" nodeOrientation="LEFT_TO_RIGHT" prefHeight="50.0"
+                       text="Заголовок" HBox.hgrow="ALWAYS">
+                    <font>
+                        <Font size="19.0"/>
+                    </font>
+                    <padding>
+                        <Insets left="10.0"/>
+                    </padding>
+                </Label>
+                <ListView fx:id="chatList" blendMode="MULTIPLY" nodeOrientation="LEFT_TO_RIGHT" VBox.vgrow="ALWAYS">
+                </ListView>
+                <HBox alignment="BOTTOM_CENTER">
+                    <children>
+                        <TextField fx:id="inputText" onAction="#sendMessage" prefHeight="25.0" prefWidth="258.0"
+                                   promptText="Ваше сообщение">
+                            <HBox.margin>
+                                <Insets bottom="5.0" right="5.0" top="5.0"/>
+                            </HBox.margin>
+                            <font>
+                                <Font size="14.0"/>
+                            </font>
+                        </TextField>
+                        <Button onAction="#sendMessage" prefHeight="30.0" prefWidth="66.0" text="send">
+                            <HBox.margin>
+                                <Insets bottom="5.0" top="5.0"/>
+                            </HBox.margin>
+                            <font>
+                                <Font size="14.0"/>
+                            </font>
+                        </Button>
+                    </children>
+                </HBox>
+            </children>
+        </VBox>
+    </children>
+</HBox>
