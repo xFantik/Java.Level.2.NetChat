@@ -5,14 +5,22 @@ import java.util.ArrayList;
 public class Dialog {
     private ArrayList<Message> messages = new ArrayList<>();
     private boolean hasNewMessages;
-    private final String opponent;
+    private String name;
+    private int ID;
 
-    public Dialog(String opponent) {
-        this.opponent = opponent;
+    public int getID() {
+        return ID;
     }
 
-    public String getOpponent() {
-        return opponent;
+    public Dialog(int ID, String name) {
+        this.ID=ID;
+        this.name = name;
+    }
+    public void updateName(String name){
+        this.name = name;
+    }
+    public String getName() {
+        return name;
     }
 
     public int size() {
@@ -27,8 +35,9 @@ public class Dialog {
     }
 
     public void add(Message m) {
+        System.out.println("сохранили сообщение от "+m.getSender()+" в диалог " +name+" id="+ID);
         messages.add(m);
-        if (!m.getSender().equals(ChatController.myName))
+        if (m.getSender()!=ChatController.myID)
             hasNewMessages = true;
     }
 

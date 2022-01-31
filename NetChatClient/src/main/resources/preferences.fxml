@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.text.Font?>
+<BorderPane fx:id="rootAnchorPane" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="ru.pb.netchatclient.PreferencesController">
+    <left>
+        <Pane prefWidth="120"/>
+
+
+    </left>
+    <center>
+
+        <VBox alignment="CENTER" HBox.hgrow="ALWAYS" VBox.vgrow="ALWAYS">
+            <children>
+
+                <BorderPane HBox.hgrow="ALWAYS">
+                    <padding>
+                        <Insets right="5.0" bottom="5" top="5"/>
+                    </padding>
+                    <left>
+                        <Label text="Your name: " prefHeight="25.0"/>
+                    </left>
+                </BorderPane>
+                <TextField HBox.hgrow="ALWAYS" fx:id="inputName" alignment="CENTER" onAction="#connectToServer"/>
+
+                <BorderPane>
+                    <padding>
+                        <Insets left="5.0" bottom="20" top="5"/>
+                    </padding>
+                    <right>
+
+                        <Button fx:id="confirmSettings" alignment="CENTER_RIGHT" mnemonicParsing="false"
+                                onAction="#connectToServer"
+                                text="Connect">
+
+                        </Button>
+                    </right>
+                </BorderPane>
+
+                <Label fx:id="errorLabel" visible="false"
+                       style="-fx-background-color: #B0121250; -fx-background-radius: 6;">
+
+
+                    <padding>
+                        <Insets top="5" left="15" right="15" bottom="5"/>
+                    </padding>
+                    <font>
+                        <Font name="System Italic" size="14.0" />
+                    </font>
+                </Label>
+
+            </children>
+        </VBox>
+    </center>
+    <right>
+        <Pane prefWidth="120"/>
+    </right>
+    <bottom>
+        <HBox>
+            <padding>
+                <Insets left="30.0" right="30.0" bottom="10"/>
+            </padding>
+            <Label text="Сервер: " prefHeight="25.0"/>
+            <TextField HBox.hgrow="ALWAYS" fx:id="inputServer" editable="false" text="127.0.0.1"/>
+            <Label text=":" prefHeight="25.0">
+                <padding>
+                    <Insets left="3.0" right="3.0"/>
+                </padding>
+            </Label>
+            <TextField HBox.hgrow="ALWAYS" fx:id="inputPort" prefWidth="50" editable="false" text="8189"/>
+
+        </HBox>
+
+    </bottom>
+</BorderPane>

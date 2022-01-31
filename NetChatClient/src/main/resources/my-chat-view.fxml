@@ -5,25 +5,27 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<HBox alignment="CENTER" prefHeight="500.0" prefWidth="320.0" spacing="0" xmlns="http://javafx.com/javafx/8"
-      xmlns:fx="http://javafx.com/fxml/1" fx:controller="ru.pb.netchatclient.ChatController">
-    <children>
-        <VBox fx:id="leftPane" alignment="CENTER">
+<BorderPane fx:id="rootHBox" prefHeight="400.0" prefWidth="320.0" xmlns="http://javafx.com/javafx/8"
+            xmlns:fx="http://javafx.com/fxml/1" fx:controller="ru.pb.netchatclient.ChatController">
+    <padding>
+        <Insets left="5.0" right="5.0"/>
+    </padding>
 
+    <left>
+        <VBox fx:id="leftPane" alignment="CENTER">
+            <padding>
+                <Insets left="5.0" right="5.0"/>
+            </padding>
             <HBox.margin>
                 <Insets bottom="5.0" left="5.0" top="5.0"/>
             </HBox.margin>
-            <Button fx:id="tmpButton" text="testIncomMsg" onAction="#receiveMessage">
-                <HBox.margin>
-                    <Insets bottom="5.0" left="5.0" top="5.0"/>
-                </HBox.margin>
-            </Button>
             <ListView fx:id="contactList" minHeight="200.0" prefWidth="200.0">
             </ListView>
         </VBox>
 
-
-        <VBox alignment="CENTER">
+    </left>
+    <center>
+        <VBox alignment="CENTER" HBox.hgrow="ALWAYS" VBox.vgrow="ALWAYS">
             <padding>
                 <Insets left="5.0" right="5.0"/>
             </padding>
@@ -50,7 +52,7 @@
                                 <Font size="14.0"/>
                             </font>
                         </TextField>
-                        <Button onAction="#sendMessage" prefHeight="30.0" prefWidth="66.0" text="send">
+                        <Button fx:id="btnSend" onAction="#sendMessage" prefHeight="30.0" prefWidth="66.0" text="send">
                             <HBox.margin>
                                 <Insets bottom="5.0" top="5.0"/>
                             </HBox.margin>
@@ -62,5 +64,5 @@
                 </HBox>
             </children>
         </VBox>
-    </children>
-</HBox>
+    </center>
+</BorderPane>

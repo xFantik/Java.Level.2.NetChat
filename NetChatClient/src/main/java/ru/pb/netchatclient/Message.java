@@ -2,10 +2,10 @@ package ru.pb.netchatclient;
 
 public class Message {
     private final String text;
-    private final String sender;
+    private final int sender_id;
 
-    public Message(String sender, String text) {
-        this.sender = sender;
+    public Message(int sender_id, String text) {
+        this.sender_id = sender_id;
         this.text = text;
     }
 
@@ -14,7 +14,7 @@ public class Message {
         return text;
     }
 
-    public String getSender() {
-        return sender;
+    public int getSender() {
+        return sender_id;
     }
 }
