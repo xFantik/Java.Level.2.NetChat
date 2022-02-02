@@ -25,6 +25,7 @@ public class ChatApplication extends Application {
         stage.setResizable(false);
         stage.getIcons().add(new Image(Objects.requireNonNull(ChatApplication.class.getResourceAsStream("/new_msg.png"))));
         stage.show();
+        LoginController.loginController.switchInterface();
 
     }
 

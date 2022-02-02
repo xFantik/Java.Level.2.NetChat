@@ -14,48 +14,69 @@
         <Pane prefWidth="150"/>
     </left>
     <center>
-
-        <VBox alignment="CENTER" HBox.hgrow="ALWAYS" VBox.vgrow="ALWAYS">
+        <VBox fx:id="mainVBox" alignment="CENTER" HBox.hgrow="ALWAYS" VBox.vgrow="ALWAYS">
             <children>
-
                 <BorderPane HBox.hgrow="ALWAYS">
                     <padding>
-                        <Insets right="5.0" bottom="5" top="5"/>
+                        <Insets right="5.0" top="5"/>
                     </padding>
                     <left>
                         <Label text="Login: " prefHeight="25.0"/>
                     </left>
                 </BorderPane>
-                <TextField HBox.hgrow="ALWAYS" fx:id="inputLogin" alignment="CENTER" onAction="#connectToServer"/>
-
+                <TextField HBox.hgrow="ALWAYS" fx:id="inputLogin" alignment="CENTER" onAction="#connectToServer" onKeyPressed="#hideError"/>
+                <VBox fx:id="nickPane">
+                    <BorderPane HBox.hgrow="ALWAYS">
+                        <padding>
+                            <Insets right="5.0" top="5"/>
+                        </padding>
+                        <left>
+                            <Label text="Nick Name: " prefHeight="25.0"/>
+                        </left>
+                    </BorderPane>
+                    <TextField HBox.hgrow="ALWAYS" fx:id="inputNickName" alignment="CENTER"  onKeyPressed="#hideError"
+                               onAction="#connectToServer"/>
+                </VBox>
                 <BorderPane HBox.hgrow="ALWAYS">
                     <padding>
-                        <Insets right="5.0" bottom="5" top="5"/>
+                        <Insets right="5.0" top="5"/>
                     </padding>
                     <left>
                         <Label text="Password: " prefHeight="25.0"/>
                     </left>
                 </BorderPane>
-                <PasswordField HBox.hgrow="ALWAYS" fx:id="inputPass" alignment="CENTER" onAction="#connectToServer"/>
-
+                <PasswordField HBox.hgrow="ALWAYS" fx:id="inputPass" alignment="CENTER" onAction="#connectToServer"  onKeyPressed="#hideError"/>
+                <VBox fx:id="confirmPane" >
+                    <BorderPane HBox.hgrow="ALWAYS">
+                        <padding>
+                            <Insets right="5.0" top="5"/>
+                        </padding>
+                        <left>
+                            <Label text="Confirm password: " prefHeight="25.0"/>
+                        </left>
+                    </BorderPane>
+                    <PasswordField HBox.hgrow="ALWAYS" fx:id="confirmPass" alignment="CENTER"  onKeyPressed="#hideError"
+                                   onAction="#connectToServer"/>
+                </VBox>
                 <BorderPane>
                     <padding>
-                        <Insets left="5.0" bottom="20" top="5"/>
+                        <Insets bottom="20" top="10"/>
                     </padding>
-                    <right>
-
-                        <Button fx:id="confirmSettings" alignment="CENTER_RIGHT" mnemonicParsing="false"
-                                onAction="#connectToServer"
-                                text="Connect">
+                    <left>
+                        <Button fx:id="switchViewButton" alignment="CENTER" onAction="#switchInterface" text="New user" prefWidth="90">
 
                         </Button>
+                    </left>
+                    <right>
+                        <Button fx:id="confirmButton" alignment="CENTER" prefWidth="150"
+                                onAction="#connectToServer"
+                                text="Connect">
+                        </Button>
                     </right>
-                </BorderPane>
 
+                </BorderPane>
                 <Label fx:id="errorLabel" visible="false"
                        style="-fx-background-color: #B0121250; -fx-background-radius: 6;">
-
-
                     <padding>
                         <Insets top="5" left="15" right="15" bottom="5"/>
                     </padding>
@@ -68,7 +89,7 @@
         </VBox>
     </center>
     <right>
-        <Pane prefWidth="150"/>
+        <Pane prefWidth="150" />
     </right>
     <bottom>
         <HBox>

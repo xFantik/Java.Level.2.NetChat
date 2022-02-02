@@ -2,6 +2,7 @@ package ru.pb.netchatserver;
 
 public class Commands {
 
+    public static final String REG = "/reg";
     public static final String AUTH = "/auth";
     public static final String AUTH_OK = "/auth_ok";
     public static final String ERROR = "/error";

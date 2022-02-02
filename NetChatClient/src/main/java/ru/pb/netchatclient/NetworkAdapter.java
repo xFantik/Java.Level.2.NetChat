@@ -46,7 +46,6 @@ public class NetworkAdapter {
         }
         isActive = false;
         System.out.println("Client stopped");
-
     }
 
     private void startReceiverThread() {

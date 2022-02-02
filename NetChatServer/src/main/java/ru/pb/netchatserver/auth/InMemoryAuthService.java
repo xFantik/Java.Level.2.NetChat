@@ -37,7 +37,7 @@ public class InMemoryAuthService implements AuthService {
             if (login.equals(user.getLogin())) {
                 if (password.equals(user.getPassword())) {
                     return user.getNick();
-                } else{
+                } else {
                     throw new WrongCredentialsException("Wrong password");
                 }
             }
@@ -47,11 +47,11 @@ public class InMemoryAuthService implements AuthService {
 
     @Override
     public boolean changeNick(String login, String newNick) {
-        if (isNickBusy(newNick)){
+        if (isNickBusy(newNick)) {
             return false;
         } else {
             for (User user : users) {
-                if (login.equals(user.getLogin())){
+                if (login.equals(user.getLogin())) {
                     user.setNick(newNick);
                     return true;
                 }
@@ -61,8 +61,11 @@ public class InMemoryAuthService implements AuthService {
     }
 
     @Override
-    public User createNewUser(String login, String password, String nick) {
-        return null;
+    public String createNewUser(String login, String password, String nick) {
+        if (isNickBusy(nick)) throw new WrongCredentialsException("Ник занят");
+        if (isLoginBusy(login)) throw new WrongCredentialsException("Логин уже существует");
+        users.add(new User(login, password, nick, "secret"));
+        return nick;
     }
 
     @Override
@@ -81,11 +84,20 @@ public class InMemoryAuthService implements AuthService {
     }
 
 
-    private boolean isNickBusy(String nick){
+    private boolean isNickBusy(String nick) {
         for (User user : users) {
             if (user.getNick().equals(nick))
                 return true;
         }
         return false;
     }
+
+    private boolean isLoginBusy(String login) {
+        for (User user : users) {
+            if (user.getLogin().equals(login))
+                return true;
+        }
+        return false;
+    }
+
 }

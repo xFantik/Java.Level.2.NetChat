@@ -133,9 +133,9 @@ public class ClientHandler extends Thread {
             try {
                 var message = in.readUTF();
                 System.out.println(message);
-                if (message.startsWith(Commands.AUTH)) {
-                    var parsedAuthMessage = message.split(REGEX);
-                    System.out.println(Arrays.toString(parsedAuthMessage));
+                var parsedAuthMessage = message.split(REGEX);
+                System.out.println(Arrays.toString(parsedAuthMessage));
+                if (parsedAuthMessage[0].equals(Commands.AUTH)) {
                     var response = "";
                     String nickname = null;
                     try {
@@ -158,9 +158,27 @@ public class ClientHandler extends Thread {
                         sendReplyMessage(Commands.AUTH_OK + REGEX + nickname + REGEX + getOnlineClients());
                         return;
                     }
+                } else if ((parsedAuthMessage[0].equals(Commands.REG))){
+                    String nickname = null;
+                    var response = "";
+                    try {
+                      nickname = authService.createNewUser(parsedAuthMessage[1], parsedAuthMessage[2], parsedAuthMessage[3]);
+                    }catch (WrongCredentialsException e){
+                        sendReplyMessage(Commands.ERROR + REGEX + e.getMessage());
+                        System.out.println("Ошибка регистрации: " +   e.getMessage());
+                    }
+                    if (nickname!=null){
+                        this.nickName=nickname;
+                        clientsList.add(this);
+                        sendMessageToAll(Commands.NEW_USER + REGEX + nickname);
+                        sendReplyMessage(Commands.AUTH_OK + REGEX + nickname + REGEX + getOnlineClients());
+                        return;
+                    }
                 }
+
             } catch (IOException e) {
                 e.printStackTrace();
+                interrupt();
             }
         }
     }
