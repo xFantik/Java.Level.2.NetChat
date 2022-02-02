@@ -9,11 +9,9 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.text.Font?>
 <BorderPane fx:id="rootAnchorPane" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="ru.pb.netchatclient.PreferencesController">
+            fx:controller="ru.pb.netchatclient.LoginController">
     <left>
-        <Pane prefWidth="120"/>
-
-
+        <Pane prefWidth="150"/>
     </left>
     <center>
 
@@ -25,10 +23,20 @@
                         <Insets right="5.0" bottom="5" top="5"/>
                     </padding>
                     <left>
-                        <Label text="Your name: " prefHeight="25.0"/>
+                        <Label text="Login: " prefHeight="25.0"/>
                     </left>
                 </BorderPane>
-                <TextField HBox.hgrow="ALWAYS" fx:id="inputName" alignment="CENTER" onAction="#connectToServer"/>
+                <TextField HBox.hgrow="ALWAYS" fx:id="inputLogin" alignment="CENTER" onAction="#connectToServer"/>
+
+                <BorderPane HBox.hgrow="ALWAYS">
+                    <padding>
+                        <Insets right="5.0" bottom="5" top="5"/>
+                    </padding>
+                    <left>
+                        <Label text="Password: " prefHeight="25.0"/>
+                    </left>
+                </BorderPane>
+                <PasswordField HBox.hgrow="ALWAYS" fx:id="inputPass" alignment="CENTER" onAction="#connectToServer"/>
 
                 <BorderPane>
                     <padding>
@@ -52,7 +60,7 @@
                         <Insets top="5" left="15" right="15" bottom="5"/>
                     </padding>
                     <font>
-                        <Font name="System Italic" size="14.0" />
+                        <Font name="System Italic" size="14.0"/>
                     </font>
                 </Label>
 
@@ -60,7 +68,7 @@
         </VBox>
     </center>
     <right>
-        <Pane prefWidth="120"/>
+        <Pane prefWidth="150"/>
     </right>
     <bottom>
         <HBox>

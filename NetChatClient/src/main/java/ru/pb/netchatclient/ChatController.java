@@ -3,6 +3,7 @@ package ru.pb.netchatclient;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
@@ -17,18 +18,25 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.VBox;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
+import ru.pb.netchatclient.utils.MessageColorUtil;
+import ru.pb.netchatclient.utils.StringUtils;
 
 import java.io.IOException;
 import java.net.*;
 import java.util.*;
 
 public class ChatController implements Initializable {
+    public static final String REGEX = "&-#";
     private static final String mainChatName = "Общий чат";
-    private static final int mainChatID = -10;
+    public VBox topVBox;
+    public Label errorLabel;
+    //    private static final int mainChatID = -10;
+    private String myName = "";
     public Label topLabel;
     public Button btnSend;
     NetworkAdapter networkAdapter;
@@ -113,14 +121,17 @@ public class ChatController implements Initializable {
         if (currentDialog != null) {
             player_send.play();
             String to;
-            if (currentDialog.getID() == mainChatID)
-                to = Commands.MESSAGE_GROUP + " ";
-            else to = Commands.MESSAGE_PRIVATE + " " + currentDialog.getID() + " ";
+            if (currentDialog.getNickName().equals(mainChatName))
+                to = Commands.MESSAGE_GROUP + REGEX;
+            else {
+                to = Commands.MESSAGE_PRIVATE + REGEX + currentDialog.getNickName() + REGEX;
+            }
 
-            networkAdapter.sendToServer(to + text);
-            currentDialog.add(message);
-
-            addToChat(message);
+            if (networkAdapter.sendToServer(to.concat(text))) {
+                currentDialog.add(message);
+                addToChat(message);
+            } else
+                showError("Lost connection");
         }
         inputText.clear();
         inputText.requestFocus();
@@ -128,31 +139,49 @@ public class ChatController implements Initializable {
     }
 
     public void showError(String text) {
-        if (rootHBox.getTop() == null) {
-            topLabel = new Label();
-            topLabel.setText(text);
-            topLabel.setFont(new Font(18));
-            topLabel.setAlignment(Pos.CENTER);
-            topLabel.setPadding(new Insets(10));
-            topLabel.setMinWidth(rootHBox.getWidth() - 10);
-            topLabel.setStyle("-fx-background-color: #B0121250; -fx-background-radius: 6;");
+//        if (rootHBox.getTop() == null) {
+//            topLabel = new Label();
+//            topLabel.setText(text);
+//            topLabel.setFont(new Font(18));
+//            topLabel.setAlignment(Pos.CENTER);
+//            topLabel.setPadding(new Insets(10));
+//            topLabel.setMinWidth(rootHBox.getWidth() - 10);
+//            topLabel.setStyle("-fx-background-color: #B0121250; -fx-background-radius: 6;");
+//
+//        } else {
+//            rootHBox.setTop(null);
+//        }
+//
+//
+//        Platform.runLater(() -> {
+//            rootHBox.setTop(topLabel);
+//            inputText.setOnAction(null);
+//            btnSend.setOnAction(null);
+//        });
 
-        } else {
-            rootHBox.setTop(null);
-        }
+
+        errorLabel.setText(text);
+        errorLabel.setFont(new Font(18));
+        errorLabel.setAlignment(Pos.CENTER);
+        errorLabel.setPadding(new Insets(10));
+        errorLabel.setMinWidth(rootHBox.getWidth() - 10);
+        errorLabel.setStyle("-fx-background-color: #B0121250; -fx-background-radius: 6;");
         Platform.runLater(() -> {
-            rootHBox.setTop(topLabel);
+
+            topVBox.getChildren().add(errorLabel);
             inputText.setOnAction(null);
             btnSend.setOnAction(null);
         });
+
+
     }
 
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
 
-        dialogsList.add(new Dialog(mainChatID, mainChatName));
-        currentDialog = getDialog(mainChatID);
+        currentDialog = new Dialog(mainChatName);
+        dialogsList.add(currentDialog);
         titleText.setText(mainChatName);
 
 
@@ -175,7 +204,7 @@ public class ChatController implements Initializable {
 
     private int name2ID(String name) {
         for (Dialog dialog : dialogsList) {
-            if (dialog.getName().equals(name)) {
+            if (dialog.getNickName().equals(name)) {
                 return dialog.getID();
             }
         }
@@ -184,9 +213,9 @@ public class ChatController implements Initializable {
 
     }
 
-    private Dialog getDialog(int id) {
+    private Dialog getDialog(String nickName) {
         for (Dialog d : dialogsList) {
-            if (d.getID() == id)
+            if (d.getNickName().equals(nickName))
                 return d;
         }
         return null;
@@ -194,7 +223,7 @@ public class ChatController implements Initializable {
 
     private void loadChat(String contactName) {         //Обновление диалогового окна. вызывается выбором контакта в списке
 
-        currentDialog = getDialog(name2ID(contactName));                    //Подгружаем сохраненный диалог
+        currentDialog = getDialog(contactName);                    //Подгружаем сохраненный диалог
 
         if (currentDialog.hasNewMessages()) {                       //Если были новые сообщения, удаляем зеленую точку
             Pane itemOfContactList = (Pane) contactList.getSelectionModel().getSelectedItem();
@@ -203,7 +232,7 @@ public class ChatController implements Initializable {
         }
 
 
-        if (currentDialog.getName().equals(mainChatName)) {
+        if (currentDialog.getNickName().equals(mainChatName)) {
             titleText.setText(mainChatName);                //меняем заголовок окна
         } else
             titleText.setText(contactName + " на связи");
@@ -223,17 +252,17 @@ public class ChatController implements Initializable {
         if (message.getSender() == myID) {
             messageItem.setStyle(messageItem.getStyle() + "-fx-background-color: #3E7D0850");
             paneInChatList.setNodeOrientation(NodeOrientation.RIGHT_TO_LEFT);
-            if (currentDialog.getName().equals(mainChatName)) {
+            if (currentDialog.getNickName().equals(mainChatName)) {
                 lastSender_ID = -1;
             }
         } else {
             paneInChatList.setNodeOrientation(NodeOrientation.LEFT_TO_RIGHT);
-            if (currentDialog.getName().equals(mainChatName)) {
+            if (currentDialog.getNickName().equals(mainChatName)) {
                 if (message.getSender() != lastSender_ID) {
                     lastSender_ID = message.getSender();
                     Label messageName = new Label();
-                    messageItem.setMinWidth(8 * getDialog(message.getSender()).getName().length() + 5);
-                    messageName.setText(getDialog(message.getSender()).getName() + ":");
+                    messageItem.setMinWidth(8 * getDialogById(message.getSender()).getNickName().length() + 5);
+                    messageName.setText(getDialogById(message.getSender()).getNickName() + ":");
                     messageName.setFont(new Font(10));
                     messageName.setPadding(new Insets(0, 3, 0, 3));
                     messageName.setStyle("-fx-background-radius: 6;" + MessageColorUtil.getColor(message.getSender()));
@@ -261,36 +290,31 @@ public class ChatController implements Initializable {
     }
 
 
-    public void newContact(String contactString) {
-        player_user_online.stop();
-        contactString = contactString.trim();
+    public void newContact(String nickName) {
 
-        String[] entry = contactString.split(Commands.DELIMITER_START_NAME);
-        if (entry.length > 1) {
-            int id = Integer.parseInt(entry[0]);
-            if (getDialog(id) != null) {
-                getDialog(id).updateName(entry[1]);
-            } else {
-                player_user_online.play();
-                dialogsList.add(new Dialog(id, entry[1]));
-            }
+        if (getDialog(nickName) == null) {
+            dialogsList.add(new Dialog(nickName));
         }
+
         Platform.runLater(new Runnable() {
             @Override
             public void run() {
+                player_user_online.stop();
+                player_user_online.play();
                 updateContactList();
             }
         });
     }
 
-    public void receiveContactList(String contactString) {
-        contactString = contactString.trim();
-        String[] entryes = contactString.split(Commands.DELIMITER_START_ENTRY);
-        for (int i = 0; i < entryes.length; i++) {
-            String[] entry = entryes[i].split(Commands.DELIMITER_START_NAME);
-            if (entry.length > 1) {
-                int id = Integer.parseInt(entry[0]);
-                dialogsList.add(new Dialog(id, entry[1]));
+    public void receiveContactList(String[] contactString) {
+        int ind = 1;
+        if (contactString[0].equals(Commands.AUTH_OK)) {
+            myName = contactString[1];
+            ind++;
+        }
+        for (; ind < contactString.length; ind++) {
+            if (getDialog(contactString[ind]) == null) {
+                dialogsList.add(new Dialog(contactString[ind]));
             }
         }
         updateContactList();
@@ -307,7 +331,7 @@ public class ChatController implements Initializable {
         for (Dialog dialog : dialogsList) {
             Pane paneInContactList = new Pane();
             Label name = new Label();
-            name.setText(dialog.getName());
+            name.setText(dialog.getNickName());
             paneInContactList.getChildren().add(name);
 
             if (dialog.hasNewMessages() && currentDialog != dialog) {
@@ -328,32 +352,26 @@ public class ChatController implements Initializable {
     }
 
     public void handleMessage(String inputString) {
-        System.out.println("Пришло сообщение: " + inputString);
-        Dialog d = null;
-        String[] arr = inputString.split(" ");
-        int from;
-        try {
-            from = Integer.parseInt(arr[1]);
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.out.println("Сообщение не получилось распарсить: " + inputString);
-            return;
+        var splitMessage = inputString.split(REGEX);
+        System.out.println("Пришло сообщение: " + Arrays.toString(splitMessage));
+        Dialog dialog_to_write = null;
+
+
+        if (splitMessage[0].equals(Commands.MESSAGE_GROUP)) {
+            dialog_to_write = getDialog(mainChatName);
+
+        } else if (splitMessage[0].equals(Commands.MESSAGE_PRIVATE)) {
+            dialog_to_write = getDialog(splitMessage[1]);
+
+        } else {
+            System.out.println("Неизвестный префикс сообщения");
         }
 
-        if (arr[0].equals(Commands.MESSAGE_GROUP)) {
-            d = getDialog(mainChatID);
-            inputString=inputString.substring(Commands.MESSAGE_GROUP.length()).trim();
 
+        Message m = new Message(getDialog(splitMessage[1]).getID(), splitMessage[2]);
+        dialog_to_write.add(m);
 
-        } else if (arr[0].equals(Commands.MESSAGE_PRIVATE)) {
-            d = getDialog(from);
-            inputString=inputString.substring(Commands.MESSAGE_PRIVATE.length()).trim();
-        }
-
-        Message m = new Message(from, inputString.substring(String.valueOf(from).length()).trim());
-        d.add(m);
-
-        Dialog finalD = d;
+        Dialog finalD = dialog_to_write;
         Platform.runLater(() -> {
             player_receive.stop();
             player_receive.play();
@@ -365,23 +383,53 @@ public class ChatController implements Initializable {
 
     }
 
-    private void goToPrefWindow(PreferencesController preferencesController, String error) {
+    private void goToPrefWindow(LoginController loginController, String error) {
         Platform.runLater(new Runnable() {
             @Override
             public void run() {
                 try {
-                    FXMLLoader fxmlLoaderPref = new FXMLLoader(ChatApplication.class.getResource("/preferences.fxml"));
+                    FXMLLoader fxmlLoaderPref = new FXMLLoader(ChatApplication.class.getResource("/login.fxml"));
                     Scene prefScene = new Scene(fxmlLoaderPref.load(), 520, 500);
                     Stage stage = (Stage) rootHBox.getScene().getWindow();
                     stage.setScene(prefScene);
 
 
-                    preferencesController.showError(error);
+                    loginController.showError(error);
 
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
             }
         });
+    }
+
+    private Dialog getDialogById(int id) {
+        for (Dialog dialog : dialogsList) {
+            if (dialog.getID() == id)
+                return dialog;
+        }
+        return null;
+    }
+
+
+    public void disconnectFromServer(ActionEvent actionEvent) {
+    }
+
+    public void mockAction(ActionEvent actionEvent) {
+    }
+
+    public void exit(ActionEvent actionEvent) {
+        System.exit(1);
+    }
+
+    public void showHelp(ActionEvent actionEvent) {
+    }
+
+    public void showAbout(ActionEvent actionEvent) {
+    }
+
+    public void changePass(ActionEvent actionEvent) {
+    }
+    public void changeNick (ActionEvent actionEvent) {
     }
 }

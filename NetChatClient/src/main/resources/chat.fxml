@@ -7,6 +7,26 @@
 
 <BorderPane fx:id="rootHBox" prefHeight="400.0" prefWidth="320.0" xmlns="http://javafx.com/javafx/8"
             xmlns:fx="http://javafx.com/fxml/1" fx:controller="ru.pb.netchatclient.ChatController">
+    <top>
+        <VBox fx:id="topVBox">
+            <MenuBar>
+                <Menu text="App">
+                    <MenuItem text="Disconnect" onAction="#disconnectFromServer"/>
+                    <MenuItem text="Exit" onAction="#exit"/>
+                </Menu>
+                <Menu text="User">
+                    <MenuItem text="Change Nick" onAction="#changeNick"/>
+                    <MenuItem text="Change password" onAction="#changePass"/>
+                </Menu>
+                <Menu text="Help">
+                    <MenuItem text="Help" onAction="#showHelp"/>
+                    <MenuItem text="About" onAction="#showAbout"/>
+                </Menu>
+            </MenuBar>
+            <Label fx:id="errorLabel"/>
+        </VBox>
+    </top>
+
     <padding>
         <Insets left="5.0" right="5.0"/>
     </padding>

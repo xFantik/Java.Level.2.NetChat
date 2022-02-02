@@ -3,24 +3,25 @@ package ru.pb.netchatclient;
 import java.util.ArrayList;
 
 public class Dialog {
+    private static int dialogCount=0;
     private ArrayList<Message> messages = new ArrayList<>();
     private boolean hasNewMessages;
-    private String name;
+    private String nickName;
     private int ID;
 
     public int getID() {
         return ID;
     }
 
-    public Dialog(int ID, String name) {
-        this.ID=ID;
-        this.name = name;
+    public Dialog(String nickName) {
+        this.ID=dialogCount++;
+        this.nickName = nickName;
     }
     public void updateName(String name){
-        this.name = name;
+        this.nickName = name;
     }
-    public String getName() {
-        return name;
+    public String getNickName() {
+        return nickName;
     }
 
     public int size() {
@@ -35,7 +36,7 @@ public class Dialog {
     }
 
     public void add(Message m) {
-        System.out.println("сохранили сообщение от "+m.getSender()+" в диалог " +name+" id="+ID);
+        System.out.println("сохранили сообщение от "+m.getSender()+" в диалог " + nickName +" id="+ID);
         messages.add(m);
         if (m.getSender()!=ChatController.myID)
             hasNewMessages = true;

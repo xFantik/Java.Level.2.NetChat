@@ -1,5 +1,7 @@
 package ru.pb.netchatclient;
 
+import java.util.HashMap;
+
 public class Message {
     private final String text;
     private final int sender_id;

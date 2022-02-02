@@ -1,27 +1,34 @@
 package ru.pb.netchatserver;
 
+import ru.pb.netchatserver.auth.AuthService;
+import ru.pb.netchatserver.error.WrongCredentialsException;
+
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class ClientHandler extends Thread {
     private static final ArrayList<ClientHandler> clientsList = new ArrayList<>();
 //    private static final HashMap<Integer, String> names = new HashMap<>();
 
+    private static final String REGEX = "&-#";
+
     private DataInputStream in;
     private DataOutputStream out;
     private Socket socket;
-    private String name = "";
+    private String nickName = "";
+    private AuthService authService;
 
-    public ClientHandler(Socket socket) {
+    public ClientHandler(Socket socket, AuthService authService) {
+        this.authService = authService;
         try {
             this.socket = socket;
             in = new DataInputStream(socket.getInputStream());
             out = new DataOutputStream(socket.getOutputStream());
-            System.out.println("Клиент подключен. Индекс: " + clientsList.size());
-            clientsList.add(this);
+            System.out.println("Клиент подключен." + clientsList.size());
         } catch (IOException e) {
             e.printStackTrace();
             System.out.println("WARNING: Can't initialise client connection");
@@ -31,72 +38,76 @@ public class ClientHandler extends Thread {
 
     @Override
     public void run() {
+        authorize();
         try {
             while (!isInterrupted()) {
                 String message = in.readUTF();
-                message = message.trim();
-                int fromIndex = clientsList.indexOf(this);
+                //int fromIndex = clientsList.indexOf(this);
                 if (message.length() == 0) {
                     System.out.println("пустое сообщние");
                     continue;
                 }
-                System.out.println(message);
-                if (message.startsWith(Commands.SET_NAME)) {
-                    String tmpName = message.substring(Commands.SET_NAME.length()).trim();
-                    if (tmpName.contains(Commands.DELIMITER_START_ENTRY) || tmpName.contains(Commands.DELIMITER_START_NAME)) {
-                        sendMessage(Commands.NAME_IS_DENY, this);
-                        interrupt();
-                        break;
-                    } else if (setNewName(tmpName)) {
-                        System.out.println("Клиент " + clientsList.indexOf(this) + " установил имя " + name);
-                        sendMessage(Commands.SET_NAME_SUCCESS.concat(generateContactList()), this);
-                        sendMessageToAll(-1, Commands.NEW_NAME + " " + clientsList.indexOf(this) + Commands.DELIMITER_START_NAME + name);
-                        continue;
-                    } else {
-                        sendMessage(Commands.NAME_IS_BUSY, this);
-                        interrupt();
-                        break;
+
+                var splitMessage = message.split(REGEX);
+                System.out.println(Arrays.toString(splitMessage));
+
+
+                switch (splitMessage[0]) {
+                    case Commands.CHANGE_NAME -> {
+                        try {
+                            String oldNick = nickName;
+                            if (setNewName(splitMessage[1], splitMessage[2])) {
+                                System.out.println("Клиент " + clientsList.indexOf(this) + " установил имя " + nickName);
+                                sendReplyMessage(Commands.SET_NAME_SUCCESS + REGEX + splitMessage[2]);
+                                sendMessageToAll(Commands.CHANGE_NAME + REGEX + oldNick + REGEX + nickName);
+                                continue;
+                            } else {
+                                sendReplyMessage(Commands.NAME_IS_BUSY);
+                            }
+                        } catch (WrongCredentialsException e) {
+                            sendReplyMessage(Commands.ERROR + REGEX + e.getMessage());
+                        } catch (ArrayIndexOutOfBoundsException e) {
+                            sendReplyMessage(Commands.ERROR + REGEX + "Не указан логин или новый ник");
+                        }
                     }
-                } else if (message.startsWith(Commands.GET_CONTACTS)) {                                  //запрос списка контактов
-                    sendMessage(Commands.GET_CONTACTS.concat(generateContactList()), this);
-                } else if (message.startsWith(Commands.MESSAGE_GROUP)) {
-                    String trim = message.substring(Commands.MESSAGE_GROUP.length()).trim();
-                    String result = Commands.MESSAGE_GROUP + " " + fromIndex + " " + trim;
-                    sendMessageToAll(fromIndex, result);
-                } else if (message.startsWith(Commands.MESSAGE_PRIVATE)) {
-                    int to = Integer.parseInt(message.split(" ")[1]);
-                    String text = message.substring(Commands.MESSAGE_GROUP.length() + String.valueOf(to).length() + 1);
-                    String result = Commands.MESSAGE_PRIVATE + " " + fromIndex + " " + text;
-                    sendMessage(result, clientsList.get(to));
+                    case "/all" -> sendMessageToAll(Commands.MESSAGE_GROUP + REGEX + nickName + REGEX + splitMessage[1]);
+                    case Commands.MESSAGE_PRIVATE -> sendMessage(Commands.MESSAGE_PRIVATE + REGEX + nickName + REGEX + splitMessage[2],
+                            getHandler(splitMessage[1]));
+                    default -> System.out.println("Нет обработчика команды " + (splitMessage[0]));
                 }
 
 
             }
         } catch (IOException e) {
             System.out.println("INFO: Клиент " + clientsList.indexOf(this) + " отключился");
+            clientsList.remove(this);
             interrupt();
         }
     }
 
-    private void sendMessageToAll(int from, String message) {
-        if (message.isBlank())
-            return;
+    private void sendMessageToAll(String message) {
+        System.out.println("Рассылка всем:");
+        int from = clientsList.indexOf(this);
         for (int i = 0; i < clientsList.size(); i++) {                      //рассылка всем
-            if (i == from || i == clientsList.indexOf(this)) {                                                        // (себя прпускаем)
+            if (i == from) {                                                        // (себя прпускаем)
                 continue;
             }
-            ClientHandler clientHandler = clientsList.get(i);
-            sendMessage(message, clientHandler);
+            sendMessage(message, clientsList.get(i));
         }
+        System.out.println("---------------------:");
+    }
+
+
+    private void sendReplyMessage(String message) {
+        sendMessage(message, this);
     }
 
     private static void sendMessage(String message, ClientHandler clientHandler) {
-        if (message.isBlank()) return;
+        System.out.println("Отправка клиенту " + clientHandler.nickName + ": " + message);
+
         if (!clientHandler.isInterrupted())
             try {
-                //Сообщение от системы
                 clientHandler.out.writeUTF(message);
-
             } catch (IOException e) {
                 clientHandler.interrupt();
                 //clientsList.remove(i);                         //Если удалить из списка, сдвинется нумерация остальных клиентов
@@ -104,40 +115,84 @@ public class ClientHandler extends Thread {
             }
     }
 
-    private static int getReceiverFromString(String s) {
-        s = s.trim();
-        StringBuilder result = new StringBuilder();
-        for (int i = 0; i < s.length(); i++) {
-            if (s.charAt(i) >= '0' && s.charAt(i) <= '9') {
-                result.append(s.charAt(i));
-            } else {
-                break;
-            }
-        }
-        if (result.length() == 0) return -10;
-        return Integer.parseInt(result.toString());
 
-    }
-
-
-    private boolean setNewName(String newName) {
+    private boolean setNewName(String login, String newName) {
+        authService.changeNick(login, newName);
         for (ClientHandler clientHandler : clientsList) {
-            if (!clientHandler.isInterrupted() && clientHandler.name.equals(newName))
+            if (!clientHandler.isInterrupted() && clientHandler.nickName.equals(newName))
                 return false;
         }
-        this.name = newName;
+        this.nickName = newName;
         return true;
     }
 
 
-    private String generateContactList() {
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < clientsList.size(); i++) {
-            if (!clientsList.get(i).isInterrupted() && clientsList.get(i) != this) {
-                sb.append(Commands.DELIMITER_START_ENTRY).append(i).append(Commands.DELIMITER_START_NAME).append(clientsList.get(i).name);
+    private void authorize() {
+        System.out.println("Authorizing");
+        while (!isInterrupted()) {
+            try {
+                var message = in.readUTF();
+                System.out.println(message);
+                if (message.startsWith(Commands.AUTH)) {
+                    var parsedAuthMessage = message.split(REGEX);
+                    System.out.println(Arrays.toString(parsedAuthMessage));
+                    var response = "";
+                    String nickname = null;
+                    try {
+                        nickname = authService.authorizeUserByLoginAndPassword(parsedAuthMessage[1], parsedAuthMessage[2]);
+                    } catch (WrongCredentialsException e) {
+                        response = Commands.ERROR + REGEX + e.getMessage();
+                        System.out.println("Wrong credentials, login " + parsedAuthMessage[1]);
+                    }
+
+                    if (isNickBusy(nickname)) {
+                        response = Commands.ERROR + REGEX + "this client already connected";
+                        System.out.println("Nick busy " + nickname);
+                    }
+                    if (!response.equals("")) {
+                        sendReplyMessage(response);
+                    } else {
+                        this.nickName = nickname;
+                        clientsList.add(this);
+                        sendMessageToAll(Commands.NEW_USER + REGEX + nickname);
+                        sendReplyMessage(Commands.AUTH_OK + REGEX + nickname + REGEX + getOnlineClients());
+                        return;
+                    }
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
-        return sb.toString();
-
     }
+
+    public synchronized boolean isNickBusy(String nick) {
+        for (ClientHandler clientHandler : clientsList) {
+            if (clientHandler.nickName.equals(nick)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private String getOnlineClients() {
+        var sb = new StringBuilder();
+        for (ClientHandler clientHandler : clientsList) {
+            if (!clientHandler.nickName.equals(this.nickName)) {
+                sb.append(clientHandler.nickName);
+                sb.append(REGEX);
+            }
+        }
+        return (sb.toString());
+    }
+
+    private ClientHandler getHandler(String nickName) {
+        for (ClientHandler clientHandler : clientsList) {
+            if (clientHandler.nickName.equals(nickName)) {
+                return clientHandler;
+            }
+        }
+        return null;
+    }
+
+
 }
