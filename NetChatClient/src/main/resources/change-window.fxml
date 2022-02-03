@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<?import javafx.scene.text.Font?>
+<BorderPane fx:id="rootAnchorPane" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="ru.pb.netchatclient.controllers.ChangeController">
+    <center>
+        <VBox fx:id="mainVBox" alignment="CENTER" HBox.hgrow="ALWAYS" VBox.vgrow="ALWAYS">
+            <children>
+                <VBox fx:id="nickPane">
+                    <BorderPane HBox.hgrow="ALWAYS">
+                        <padding>
+                            <Insets right="5.0" top="5"/>
+                        </padding>
+                        <left>
+                            <Label text="Current Nick: " prefHeight="25.0"/>
+                        </left>
+                    </BorderPane>
+                    <TextField HBox.hgrow="ALWAYS" fx:id="oldNick" alignment="CENTER" editable="false"/>
+
+                    <BorderPane HBox.hgrow="ALWAYS">
+                        <padding>
+                            <Insets right="5.0" top="5"/>
+                        </padding>
+                        <left>
+                            <Label text="New Nick Name: " prefHeight="25.0"/>
+                        </left>
+                    </BorderPane>
+                    <TextField HBox.hgrow="ALWAYS" fx:id="inputNickName" alignment="CENTER" onAction="#actionApply" onKeyPressed="#hideError"/>
+                </VBox>
+                <VBox fx:id="passwordPane">
+                    <BorderPane HBox.hgrow="ALWAYS">
+                        <padding>
+                            <Insets right="5.0" top="5"/>
+                        </padding>
+                        <left>
+                            <Label text="Old Password: " prefHeight="25.0"/>
+                        </left>
+                    </BorderPane>
+                    <PasswordField HBox.hgrow="ALWAYS" fx:id="inputOldPass" alignment="CENTER" onAction="#actionApply" onKeyPressed="#hideError"/>
+                    <BorderPane HBox.hgrow="ALWAYS">
+                        <padding>
+                            <Insets right="5.0" top="5"/>
+                        </padding>
+                        <left>
+                            <Label text="New Password: " prefHeight="25.0"/>
+                        </left>
+                    </BorderPane>
+                    <PasswordField HBox.hgrow="ALWAYS" fx:id="inputNewPass" alignment="CENTER" onAction="#actionApply" onKeyPressed="#hideError"/>
+
+                    <BorderPane HBox.hgrow="ALWAYS">
+                        <padding>
+                            <Insets right="5.0" top="5"/>
+                        </padding>
+                        <left>
+                            <Label text="Confirm password: " prefHeight="25.0"/>
+                        </left>
+                    </BorderPane>
+                    <PasswordField HBox.hgrow="ALWAYS" fx:id="confirmNewPass" alignment="CENTER" onAction="#actionApply" onKeyPressed="#hideError"/>
+                </VBox>
+                <VBox fx:id="controlVbox">
+                    <BorderPane>
+                        <padding>
+                            <Insets bottom="20" top="10"/>
+                        </padding>
+                        <left>
+                            <Button alignment="CENTER" onAction="#actionClose" text="Cancel" prefWidth="80">
+
+                            </Button>
+                        </left>
+                        <right>
+                            <Button alignment="CENTER" prefWidth="80" onAction="#actionApply" text="Apply">
+                            </Button>
+                        </right>
+
+                    </BorderPane>
+                    <Label fx:id="errorLabel" visible="false" minWidth="200" alignment="CENTER"
+                           style="-fx-background-color: #B0121250; -fx-background-radius: 6;">
+                        <padding>
+                            <Insets top="5" left="15" right="15" bottom="5"/>
+                        </padding>
+                        <font>
+                            <Font name="System Italic" size="14.0"/>
+                        </font>
+                    </Label>
+                </VBox>
+
+
+            </children>
+        </VBox>
+    </center>
+    <right>
+        <Pane prefWidth="50"/>
+    </right>
+    <left>
+        <Pane prefWidth="50"/>
+    </left>
+    <top>
+        <Pane prefHeight="20"/>
+    </top>
+
+
+</BorderPane>

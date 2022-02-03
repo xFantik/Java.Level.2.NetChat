@@ -21,6 +21,7 @@ public class ClientHandler extends Thread {
     private Socket socket;
     private String nickName = "";
     private AuthService authService;
+    private String login = "";
 
     public ClientHandler(Socket socket, AuthService authService) {
         this.authService = authService;
@@ -56,30 +57,40 @@ public class ClientHandler extends Thread {
                     case Commands.CHANGE_NAME -> {
                         try {
                             String oldNick = nickName;
-                            if (setNewName(splitMessage[1], splitMessage[2])) {
-                                System.out.println("Клиент " + clientsList.indexOf(this) + " установил имя " + nickName);
-                                sendReplyMessage(Commands.SET_NAME_SUCCESS + REGEX + splitMessage[2]);
+                            if (authService.changeNick(nickName, splitMessage[1])) {
+                                nickName=splitMessage[1];
+                                System.out.println("Клиент " + oldNick + " установил имя " + nickName);
+                                sendReplyMessage(Commands.SET_NAME_SUCCESS + REGEX + nickName);
                                 sendMessageToAll(Commands.CHANGE_NAME + REGEX + oldNick + REGEX + nickName);
-                                continue;
-                            } else {
-                                sendReplyMessage(Commands.NAME_IS_BUSY);
                             }
                         } catch (WrongCredentialsException e) {
-                            sendReplyMessage(Commands.ERROR + REGEX + e.getMessage());
+                            sendReplyMessage(Commands.SET_NAME_ERROR + REGEX + e.getMessage());
                         } catch (ArrayIndexOutOfBoundsException e) {
-                            sendReplyMessage(Commands.ERROR + REGEX + "Не указан логин или новый ник");
+                            sendReplyMessage(Commands.SET_NAME_ERROR + REGEX + "Не все поля заполнены");
                         }
                     }
-                    case "/all" -> sendMessageToAll(Commands.MESSAGE_GROUP + REGEX + nickName + REGEX + splitMessage[1]);
+                    case Commands.CHANGE_PASSWORD -> {
+                        try {
+                            if (authService.changePassword(login, splitMessage[1], splitMessage[2])) {
+                                System.out.println("Клиент " + nickName + " сменил пароль ");
+                                sendReplyMessage(Commands.SET_PASSWORD_SUCCESS);
+                            }
+                        } catch (WrongCredentialsException e) {
+                            sendReplyMessage(Commands.SET_PASSWORD_ERROR + REGEX + e.getMessage());
+                        } catch (ArrayIndexOutOfBoundsException e) {
+                            sendReplyMessage(Commands.SET_PASSWORD_ERROR + REGEX + "Не все поля заполнены");
+                        }
+                    }
+
+                    case Commands.MESSAGE_GROUP -> sendMessageToAll(Commands.MESSAGE_GROUP + REGEX + nickName + REGEX + splitMessage[1]);
                     case Commands.MESSAGE_PRIVATE -> sendMessage(Commands.MESSAGE_PRIVATE + REGEX + nickName + REGEX + splitMessage[2],
                             getHandler(splitMessage[1]));
                     default -> System.out.println("Нет обработчика команды " + (splitMessage[0]));
                 }
 
-
             }
         } catch (IOException e) {
-            System.out.println("INFO: Клиент " + clientsList.indexOf(this) + " отключился");
+            sendMessageToAll(Commands.USER_OFFLINE + REGEX + this.nickName);
             clientsList.remove(this);
             interrupt();
         }
@@ -110,20 +121,9 @@ public class ClientHandler extends Thread {
                 clientHandler.out.writeUTF(message);
             } catch (IOException e) {
                 clientHandler.interrupt();
-                //clientsList.remove(i);                         //Если удалить из списка, сдвинется нумерация остальных клиентов
+                clientsList.remove(clientHandler);
                 e.printStackTrace();
             }
-    }
-
-
-    private boolean setNewName(String login, String newName) {
-        authService.changeNick(login, newName);
-        for (ClientHandler clientHandler : clientsList) {
-            if (!clientHandler.isInterrupted() && clientHandler.nickName.equals(newName))
-                return false;
-        }
-        this.nickName = newName;
-        return true;
     }
 
 
@@ -139,6 +139,7 @@ public class ClientHandler extends Thread {
                     var response = "";
                     String nickname = null;
                     try {
+                        login = parsedAuthMessage[1];
                         nickname = authService.authorizeUserByLoginAndPassword(parsedAuthMessage[1], parsedAuthMessage[2]);
                     } catch (WrongCredentialsException e) {
                         response = Commands.ERROR + REGEX + e.getMessage();
@@ -158,17 +159,18 @@ public class ClientHandler extends Thread {
                         sendReplyMessage(Commands.AUTH_OK + REGEX + nickname + REGEX + getOnlineClients());
                         return;
                     }
-                } else if ((parsedAuthMessage[0].equals(Commands.REG))){
+                } else if ((parsedAuthMessage[0].equals(Commands.REG))) {
                     String nickname = null;
                     var response = "";
                     try {
-                      nickname = authService.createNewUser(parsedAuthMessage[1], parsedAuthMessage[2], parsedAuthMessage[3]);
-                    }catch (WrongCredentialsException e){
+                        login = parsedAuthMessage[1];
+                        nickname = authService.createNewUser(parsedAuthMessage[1], parsedAuthMessage[2], parsedAuthMessage[3]);
+                    } catch (WrongCredentialsException e) {
                         sendReplyMessage(Commands.ERROR + REGEX + e.getMessage());
-                        System.out.println("Ошибка регистрации: " +   e.getMessage());
+                        System.out.println("Ошибка регистрации: " + e.getMessage());
                     }
-                    if (nickname!=null){
-                        this.nickName=nickname;
+                    if (nickname != null) {
+                        this.nickName = nickname;
                         clientsList.add(this);
                         sendMessageToAll(Commands.NEW_USER + REGEX + nickname);
                         sendReplyMessage(Commands.AUTH_OK + REGEX + nickname + REGEX + getOnlineClients());

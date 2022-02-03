@@ -46,12 +46,12 @@ public class InMemoryAuthService implements AuthService {
     }
 
     @Override
-    public boolean changeNick(String login, String newNick) {
+    public boolean changeNick(String oldNick, String newNick) {
         if (isNickBusy(newNick)) {
-            return false;
+            throw new WrongCredentialsException("Ник занят");
         } else {
             for (User user : users) {
-                if (login.equals(user.getLogin())) {
+                if (oldNick.equals(user.getNick())) {
                     user.setNick(newNick);
                     return true;
                 }
@@ -74,8 +74,17 @@ public class InMemoryAuthService implements AuthService {
     }
 
     @Override
-    public void changePassword(String login, String oldPass, String newPass) {
-
+    public boolean changePassword(String login, String oldPass, String newPass) {
+        for (User user : users) {
+            if (user.getLogin().equals(login)){
+                if (user.getPassword().equals(oldPass)){
+                    user.setPassword(newPass);
+                    return true;
+                }
+                else throw new WrongCredentialsException("Wrong password");
+            }
+        }
+        throw new WrongCredentialsException("User not found");
     }
 
     @Override

@@ -9,7 +9,7 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.text.Font?>
 <BorderPane fx:id="rootAnchorPane" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="ru.pb.netchatclient.LoginController">
+            fx:controller="ru.pb.netchatclient.controllers.LoginController">
     <left>
         <Pane prefWidth="150"/>
     </left>

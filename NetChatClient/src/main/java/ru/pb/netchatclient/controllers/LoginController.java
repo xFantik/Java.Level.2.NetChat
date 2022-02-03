@@ -1,42 +1,58 @@
-package ru.pb.netchatclient;
+package ru.pb.netchatclient.controllers;
 
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
+import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
+import javafx.fxml.Initializable;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import ru.pb.netchatclient.ChatApplication;
+import ru.pb.netchatclient.Commands;
+import ru.pb.netchatclient.NetworkAdapter;
 
 import java.io.IOException;
+import java.net.URL;
+import java.util.ResourceBundle;
 
-public class LoginController {
-
-    public Button switchViewButton;
-    public VBox mainVBox;
+public class LoginController implements Initializable {
+    private final String errorStyle = "-fx-background-color: #B0121250;";
     private boolean isRegisterView = true;
-    public PasswordField inputPass;
-    public TextField inputLogin;
-    public TextField inputNickName;
-    public PasswordField confirmPass;
-    public VBox confirmPane;
-    public VBox nickPane;
     private NetworkAdapter networkAdapter;
+
+    @FXML
+    public Button switchViewButton;
+    @FXML
+    public VBox mainVBox;
+    @FXML
+    public PasswordField inputPass;
+    @FXML
+    public TextField inputLogin;
+    @FXML
+    public TextField inputNickName;
+    @FXML
+    public PasswordField confirmPass;
+    @FXML
+    public VBox confirmPane;
+    @FXML
+    public VBox nickPane;
+    @FXML
     public Button confirmButton;
-    //    public TextField inputName;
+    @FXML
     public BorderPane rootAnchorPane;
+    @FXML
     public Label errorLabel;
-    public static LoginController loginController;
 
+    @Override
+    public void initialize(URL location, ResourceBundle resources) {
+        switchInterface();
 
-    public LoginController() {
-        loginController = this;
     }
 
     public void connectToServer(ActionEvent actionEvent) {
@@ -50,7 +66,6 @@ public class LoginController {
             networkAdapter = new NetworkAdapter(this);
         }
 
-        System.out.println(isRegisterView);
         if (isRegisterView)
             networkAdapter.sendToServer(Commands.REG + ChatController.REGEX + inputLogin.getText().trim() + ChatController.REGEX + inputPass.getText() + ChatController.REGEX + inputNickName.getText().trim());
         else
@@ -62,40 +77,40 @@ public class LoginController {
         errorLabel.setVisible(false);
 
         if (inputLogin.getText().isBlank()) {
-            inputLogin.setStyle("-fx-background-color: #B0121250;");
+            inputLogin.setStyle(errorStyle);
             itsOk = false;
         }
         if (inputLogin.getText().contains(ChatController.REGEX)) {
-            inputLogin.setStyle("-fx-background-color: #B0121250;");
+            inputLogin.setStyle(errorStyle);
             showError(String.format("Не используйте \"%s\"", ChatController.REGEX));
             itsOk = false;
         }
         if (inputPass.getText().isBlank()) {
-            inputPass.setStyle("-fx-background-color: #B0121250;");
+            inputPass.setStyle(errorStyle);
             itsOk = false;
         }
         if (inputPass.getText().contains(ChatController.REGEX)) {
-            inputPass.setStyle("-fx-background-color: #B0121250;");
+            inputPass.setStyle(errorStyle);
             showError(String.format("Не используйте \"%s\"", ChatController.REGEX));
             itsOk = false;
         }
 
         if (isRegisterView) {
             if (inputNickName.getText().isBlank()) {
-                inputNickName.setStyle("-fx-background-color: #B0121250;");
+                inputNickName.setStyle(errorStyle);
                 itsOk = false;
             }
             if (inputNickName.getText().contains(ChatController.REGEX)) {
-                inputNickName.setStyle("-fx-background-color: #B0121250;");
+                inputNickName.setStyle(errorStyle);
                 showError(String.format("Не используйте \"%s\"", ChatController.REGEX));
                 itsOk = false;
             }
             if (confirmPass.getText().isBlank()) {
-                confirmPass.setStyle("-fx-background-color: #B0121250;");
+                confirmPass.setStyle(errorStyle);
                 itsOk = false;
             }
             if (confirmPass.getText().contains(ChatController.REGEX)) {
-                confirmPass.setStyle("-fx-background-color: #B0121250;");
+                confirmPass.setStyle(errorStyle);
                 showError(String.format("Не используйте \"%s\"", ChatController.REGEX));
                 itsOk = false;
             }
@@ -104,8 +119,8 @@ public class LoginController {
         if (!itsOk) return false;
 
         if (isRegisterView && !confirmPass.getText().equals(inputPass.getText())) {
-            confirmPass.setStyle("-fx-background-color: #B0121250;");
-            inputPass.setStyle("-fx-background-color: #B0121250;");
+            confirmPass.setStyle(errorStyle);
+            inputPass.setStyle(errorStyle);
             showError("Пароли не совпадают");
             itsOk = false;
         }
@@ -135,7 +150,7 @@ public class LoginController {
     }
 
 
-    public void goToChat() throws IOException {
+    public void goToChat(String name) throws IOException {
         //todo: проверка на открытое окно
         FXMLLoader fxmlLoaderChatWindow = new FXMLLoader(ChatApplication.class.getResource("/chat.fxml"));
         Scene chatScene = new Scene(fxmlLoaderChatWindow.load(), 550, 500);
@@ -146,17 +161,17 @@ public class LoginController {
             public void run() {
                 ChatController.chatController.setProp(networkAdapter);
                 stage.setScene(chatScene);
-                stage.setTitle(stage.getTitle() + ": " + inputLogin.getText());
+                stage.setTitle("TheBestChat: " + name);
             }
         });
     }
+
+
 
     public void switchInterface() {
         hideError();
 
         if (!isRegisterView) {
-
-
             mainVBox.getChildren().add(2, nickPane);
             mainVBox.getChildren().add(5, confirmPane);
             switchViewButton.setText("Go to Login");

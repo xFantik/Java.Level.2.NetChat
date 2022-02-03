@@ -1,5 +1,10 @@
 package ru.pb.netchatclient;
 
+import javafx.event.ActionEvent;
+import ru.pb.netchatclient.controllers.ChangeController;
+import ru.pb.netchatclient.controllers.ChatController;
+import ru.pb.netchatclient.controllers.LoginController;
+
 import java.io.*;
 import java.net.Socket;
 import java.net.SocketException;
@@ -12,6 +17,7 @@ public class NetworkAdapter {
     private Thread receiverThread;
     private LoginController loginController;
     private boolean isActive = false;
+    Socket socket;
 
     public NetworkAdapter(LoginController p) {
         loginController = p;
@@ -20,7 +26,7 @@ public class NetworkAdapter {
 
     public void start() {
         try {
-            Socket socket = new Socket(HOST, PORT);
+            socket = new Socket(HOST, PORT);
             System.out.println("Connected to server");
             in = new DataInputStream(socket.getInputStream());
             out = new DataOutputStream(socket.getOutputStream());
@@ -38,11 +44,15 @@ public class NetworkAdapter {
         }
     }
 
-    private void shutdown() throws IOException {
+    public void shutdown() {
+
         if (receiverThread != null) {
-            if (receiverThread.isAlive()) {
-                receiverThread.interrupt();
-            }
+            receiverThread.interrupt();
+        }
+        try {
+            socket.close();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
         isActive = false;
         System.out.println("Client stopped");
@@ -56,13 +66,32 @@ public class NetworkAdapter {
                     var splitMessage = message.split(ChatController.REGEX);
                     System.out.println(message);
                     if (splitMessage[0].equals(Commands.AUTH_OK)) {
-                        loginController.goToChat();
+                        loginController.goToChat(splitMessage[1]);
                         ChatController.chatController.receiveContactList(splitMessage);
                     } else if (splitMessage[0].equals(Commands.ERROR)) {
                         loginController.showError(splitMessage[1]);
                         return;
                     } else if (splitMessage[0].equals(Commands.NEW_USER)) {
                         ChatController.chatController.newContact(splitMessage[1]);
+                    } else if (splitMessage[0].equals(Commands.USER_OFFLINE)) {
+                        ChatController.chatController.contactOffline(splitMessage[1]);
+                    } else if (splitMessage[0].equals(Commands.SET_PASSWORD_SUCCESS)) {
+                        ChangeController.changeController.actionClose(new ActionEvent());
+                        ChatController.chatController.showSuccess("Пароль успешно изменён!");
+
+                    } else if (splitMessage[0].equals(Commands.SET_PASSWORD_ERROR)) {
+                        ChangeController.changeController.showError(splitMessage[1]);
+
+                    } else if (splitMessage[0].equals(Commands.SET_NAME_SUCCESS)) {
+                        ChangeController.changeController.actionClose(new ActionEvent());
+                        ChatController.chatController.showSuccess("Ник успешно изменён!");
+                        ChatController.myName = splitMessage[1];
+
+
+                    } else if (splitMessage[0].equals(Commands.SET_NAME_ERROR)) {
+                        ChangeController.changeController.showError(splitMessage[1]);
+                    } else if (splitMessage[0].equals(Commands.CHANGE_NAME)) {
+                        ChatController.chatController.changeNick(splitMessage[1], splitMessage[2]);
                     } else if (ChatController.chatController != null)
                         ChatController.chatController.handleMessage(message);
                     else {
@@ -79,13 +108,9 @@ public class NetworkAdapter {
                 System.out.println("\nERROR: Connection to server has been lost 2");
             } catch (IOException e) {
                 e.printStackTrace();
-                e.printStackTrace();
             } finally {
-                try {
-                    shutdown();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                shutdown();
+
             }
 
         });

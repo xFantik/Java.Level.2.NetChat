@@ -13,9 +13,6 @@ public class ChatApplication extends Application {
 
     @Override
     public void start(Stage stage) throws IOException {
-//        FXMLLoader fxmlLoaderMain = new FXMLLoader(ChatApplication.class.getResource("/chat.fxml"));
-////        FXMLLoader fxmlLoaderMain = new FXMLLoader(getClass().getResource("/chat.fxml"));
-//        Scene mainScene = new Scene(fxmlLoaderMain.load(), 520, 500);
         FXMLLoader fxmlLoaderPref = new FXMLLoader(ChatApplication.class.getResource("/login.fxml"));
         Scene prefScene = new Scene(fxmlLoaderPref.load(), 550, 500);
 
@@ -25,8 +22,6 @@ public class ChatApplication extends Application {
         stage.setResizable(false);
         stage.getIcons().add(new Image(Objects.requireNonNull(ChatApplication.class.getResourceAsStream("/new_msg.png"))));
         stage.show();
-        LoginController.loginController.switchInterface();
-
     }
 
     public static void main(String[] args) {

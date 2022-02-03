@@ -1,4 +1,4 @@
-package ru.pb.netchatclient;
+package ru.pb.netchatclient.objects;
 
 import java.util.HashMap;
 
