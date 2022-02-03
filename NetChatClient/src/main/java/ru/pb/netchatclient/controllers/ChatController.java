@@ -90,8 +90,8 @@ public class ChatController implements Initializable {
         inputText.requestFocus();
     }
 
-   @FXML
-   protected void sendMessage() {
+    @FXML
+    protected void sendMessage() {
         player_send.stop();
         String text = inputText.getText();
         if (text.isBlank()) {
@@ -234,9 +234,10 @@ public class ChatController implements Initializable {
         if (message.getSender() == systemID) {
             messageItem.setPadding(new Insets(0));
             messageItem.setStyle("-fx-background-color: #5BB57050; -fx-background-radius: 6;");
-            messageItem.setPrefWidth(chatList.getWidth() - 20);
+            messageItem.setPrefWidth(chatList.getWidth() - 40);
             messageItem.setAlignment(Pos.CENTER);
             messageItem.setText(message.getText());
+            lastSender_ID = -1;
 
 
         } else if (message.getSender() == myID) {
@@ -261,7 +262,7 @@ public class ChatController implements Initializable {
                 }
                 messageItem.setOnMouseClicked((MouseEvent mouseEvent) -> {
                     if (mouseEvent.getButton().equals(MouseButton.PRIMARY)) {
-                        inputText.setText(message.getSender() + ", " + inputText.getText());
+                        inputText.setText(getDialogById(message.getSender()).getNickName() + ", " + inputText.getText());
                         inputText.requestFocus();
                         inputText.selectEnd();
                     }
@@ -360,7 +361,10 @@ public class ChatController implements Initializable {
     public void changeNick(String old, String newNick) {
         if (getDialog(old) != null)
             getDialog(old).setNickName(newNick);
-        Platform.runLater(() -> updateContactList());
+        Platform.runLater(() -> {
+            addSystemMessageToChat(old + "сменил ник: " + newNick);
+            updateContactList();
+        });
     }
 
     public void handleMessage(String inputString) {
