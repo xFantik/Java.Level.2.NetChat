@@ -11,6 +11,7 @@
     <modules>
         <module>NetChatServer</module>
         <module>NetChatClient</module>
+        <module>NetChatCommon</module>
     </modules>
 
     <properties>

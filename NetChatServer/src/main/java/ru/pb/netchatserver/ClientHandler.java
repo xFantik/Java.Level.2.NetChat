@@ -1,5 +1,6 @@
 package ru.pb.netchatserver;
 
+import ru.pb.Commands;
 import ru.pb.netchatserver.auth.AuthService;
 import ru.pb.netchatserver.error.WrongCredentialsException;
 
@@ -58,7 +59,7 @@ public class ClientHandler extends Thread {
                         try {
                             String oldNick = nickName;
                             if (authService.changeNick(nickName, splitMessage[1])) {
-                                nickName=splitMessage[1];
+                                nickName = splitMessage[1];
                                 System.out.println("Клиент " + oldNick + " установил имя " + nickName);
                                 sendReplyMessage(Commands.SET_NAME_SUCCESS + REGEX + nickName);
                                 sendMessageToAll(Commands.CHANGE_NAME + REGEX + oldNick + REGEX + nickName);
@@ -129,6 +130,23 @@ public class ClientHandler extends Thread {
 
     private void authorize() {
         System.out.println("Authorizing");
+        new Thread(() -> {
+            try {
+                Thread.sleep(5000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            if (!clientsList.contains(this)) {
+                try {
+                    socket.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                this.interrupt();
+                System.out.println("Процесс авторизации убит");
+            }
+        }).start();
+
         while (!isInterrupted()) {
             try {
                 var message = in.readUTF();

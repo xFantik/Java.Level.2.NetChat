@@ -1,4 +1,4 @@
-package ru.pb.netchatclient;
+package ru.pb;
 
 public class Commands {
 
