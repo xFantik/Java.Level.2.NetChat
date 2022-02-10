@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.text.Font?>
+<BorderPane fx:id="rootAnchorPane" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="ru.pb.netchatclient.controllers.LoginController">
+    <left>
+        <Pane prefWidth="150"/>
+    </left>
+    <center>
+        <VBox fx:id="mainVBox" alignment="CENTER" HBox.hgrow="ALWAYS" VBox.vgrow="ALWAYS">
+            <children>
+                <BorderPane HBox.hgrow="ALWAYS">
+                    <padding>
+                        <Insets right="5.0" top="5"/>
+                    </padding>
+                    <left>
+                        <Label text="Login: " prefHeight="25.0"/>
+                    </left>
+                </BorderPane>
+                <TextField HBox.hgrow="ALWAYS" fx:id="inputLogin" alignment="CENTER" onAction="#connectToServer" onKeyPressed="#hideError"/>
+                <VBox fx:id="nickPane">
+                    <BorderPane HBox.hgrow="ALWAYS">
+                        <padding>
+                            <Insets right="5.0" top="5"/>
+                        </padding>
+                        <left>
+                            <Label text="Nick Name: " prefHeight="25.0"/>
+                        </left>
+                    </BorderPane>
+                    <TextField HBox.hgrow="ALWAYS" fx:id="inputNickName" alignment="CENTER"  onKeyPressed="#hideError"
+                               onAction="#connectToServer"/>
+                </VBox>
+                <BorderPane HBox.hgrow="ALWAYS">
+                    <padding>
+                        <Insets right="5.0" top="5"/>
+                    </padding>
+                    <left>
+                        <Label text="Password: " prefHeight="25.0"/>
+                    </left>
+                </BorderPane>
+                <PasswordField HBox.hgrow="ALWAYS" fx:id="inputPass" alignment="CENTER" onAction="#connectToServer"  onKeyPressed="#hideError"/>
+                <VBox fx:id="confirmPane" >
+                    <BorderPane HBox.hgrow="ALWAYS">
+                        <padding>
+                            <Insets right="5.0" top="5"/>
+                        </padding>
+                        <left>
+                            <Label text="Confirm password: " prefHeight="25.0"/>
+                        </left>
+                    </BorderPane>
+                    <PasswordField HBox.hgrow="ALWAYS" fx:id="confirmPass" alignment="CENTER"  onKeyPressed="#hideError"
+                                   onAction="#connectToServer"/>
+                </VBox>
+                <BorderPane>
+                    <padding>
+                        <Insets bottom="20" top="10"/>
+                    </padding>
+                    <left>
+                        <Button fx:id="switchViewButton" alignment="CENTER" onAction="#switchInterface" text="New user" prefWidth="90">
+
+                        </Button>
+                    </left>
+                    <right>
+                        <Button fx:id="confirmButton" alignment="CENTER" prefWidth="150"
+                                onAction="#connectToServer"
+                                text="Connect">
+                        </Button>
+                    </right>
+
+                </BorderPane>
+                <Label fx:id="errorLabel" visible="false"
+                       style="-fx-background-color: #B0121250; -fx-background-radius: 6;">
+                    <padding>
+                        <Insets top="5" left="15" right="15" bottom="5"/>
+                    </padding>
+                    <font>
+                        <Font name="System Italic" size="14.0"/>
+                    </font>
+                </Label>
+
+            </children>
+        </VBox>
+    </center>
+    <right>
+        <Pane prefWidth="150" />
+    </right>
+    <bottom>
+        <HBox>
+            <padding>
+                <Insets left="30.0" right="30.0" bottom="10"/>
+            </padding>
+            <Label text="Сервер: " prefHeight="25.0"/>
+            <TextField HBox.hgrow="ALWAYS" fx:id="inputServer" editable="false" text="127.0.0.1"/>
+            <Label text=":" prefHeight="25.0">
+                <padding>
+                    <Insets left="3.0" right="3.0"/>
+                </padding>
+            </Label>
+            <TextField HBox.hgrow="ALWAYS" fx:id="inputPort" prefWidth="50" editable="false" text="8189"/>
+
+        </HBox>
+
+    </bottom>
+</BorderPane>
