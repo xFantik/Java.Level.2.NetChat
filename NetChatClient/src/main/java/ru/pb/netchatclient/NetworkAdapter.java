@@ -1,6 +1,7 @@
 package ru.pb.netchatclient;
 
 import javafx.event.ActionEvent;
+import ru.pb.Commands;
 import ru.pb.netchatclient.controllers.ChangeController;
 import ru.pb.netchatclient.controllers.ChatController;
 import ru.pb.netchatclient.controllers.LoginController;
@@ -123,6 +124,7 @@ public class NetworkAdapter {
             out.writeUTF(text);
             return true;
         } catch (SocketException e) {
+            shutdown();
             System.out.println(e.getMessage());
             if (in == null) {
                 System.out.println("ERROR: Connection to server failed");
@@ -130,6 +132,7 @@ public class NetworkAdapter {
                 System.out.println("\nERROR: Connection to server has been lost 3");
             return false;
         } catch (IOException e) {
+            shutdown();
             e.printStackTrace();
             return false;
         }

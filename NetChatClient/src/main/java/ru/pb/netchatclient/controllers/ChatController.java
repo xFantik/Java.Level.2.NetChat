@@ -25,8 +25,8 @@ import javafx.scene.media.MediaPlayer;
 import javafx.scene.text.Font;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import ru.pb.Commands;
 import ru.pb.netchatclient.ChatApplication;
-import ru.pb.netchatclient.Commands;
 import ru.pb.netchatclient.objects.Dialog;
 import ru.pb.netchatclient.objects.Message;
 import ru.pb.netchatclient.NetworkAdapter;
@@ -276,6 +276,7 @@ public class ChatController implements Initializable {
 
         paneInChatList.getChildren().add(messageItem);
         chatList.getItems().add(paneInChatList);
+        chatList.refresh();
         chatList.scrollTo(chatList.getItems().size() - 1);
     }
 

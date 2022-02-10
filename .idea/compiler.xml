@@ -8,6 +8,7 @@
         <outputRelativeToContentRoot value="true" />
         <module name="NetChatServer" />
         <module name="NetChatClient" />
+        <module name="NetChatCommon" />
       </profile>
     </annotationProcessing>
   </component>
