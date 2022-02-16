@@ -1,7 +1,9 @@
 package ru.pb.netchatserver.auth;
 
+import ru.pb.netchatserver.error.AuthConnectException;
+
 public interface AuthService {
-    void start();
+    void start() throws AuthConnectException;
     void stop();
     String authorizeUserByLoginAndPassword(String login, String password);
     boolean changeNick(String oldNick, String newNick);

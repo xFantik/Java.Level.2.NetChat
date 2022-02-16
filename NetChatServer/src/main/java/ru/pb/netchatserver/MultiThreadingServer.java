@@ -1,17 +1,19 @@
 package ru.pb.netchatserver;
 
 import ru.pb.netchatserver.auth.AuthService;
-import ru.pb.netchatserver.auth.InMemoryAuthService;
+import ru.pb.netchatserver.auth.MySQLAuthService;
+import ru.pb.netchatserver.error.AuthConnectException;
+import ru.pb.PropertyReader;
 
 import java.io.IOException;
 import java.net.ServerSocket;
 
 public class MultiThreadingServer {
-    private static final int PORT = 8189;
     private AuthService authService;
 
     public static void main(String[] args) {
-        new MultiThreadingServer(new InMemoryAuthService()).start();
+//        new MultiThreadingServer(new InMemoryAuthService()).start();
+        new MultiThreadingServer(new MySQLAuthService()).start();
     }
 
     public MultiThreadingServer(AuthService authService) {
@@ -19,7 +21,14 @@ public class MultiThreadingServer {
     }
 
     public void start() {
-        try (var serverSocket = new ServerSocket(PORT)) {
+        try {
+            authService.start();
+        } catch (AuthConnectException e) {
+            System.out.println("Ошибка подключения к сервису авторизцаии: " + e.getMessage());
+            System.exit(-1);
+        }
+
+        try (var serverSocket = new ServerSocket(PropertyReader.getInstance().getPort())) {
             System.out.println("Server started");
             System.out.println("Waiting or connection...");
             while (true) {
@@ -38,6 +47,7 @@ public class MultiThreadingServer {
     }
 
     private void shutdown() throws IOException {
+        authService.stop();
         System.out.println("Server stopped");
     }
 }

@@ -2,17 +2,15 @@ package ru.pb.netchatclient;
 
 import javafx.event.ActionEvent;
 import ru.pb.Commands;
-import ru.pb.netchatclient.controllers.ChangeController;
-import ru.pb.netchatclient.controllers.ChatController;
-import ru.pb.netchatclient.controllers.LoginController;
+import ru.pb.PropertyReader;
+import ru.pb.netchatclient.controllers.*;
 
 import java.io.*;
 import java.net.Socket;
 import java.net.SocketException;
-
 public class NetworkAdapter {
-    private String HOST = "127.0.0.1";
-    private int PORT = 8189;
+//    private String HOST = "127.0.0.1";
+//    private int PORT = 8189;
     private DataInputStream in;
     private DataOutputStream out;
     private Thread receiverThread;
@@ -27,7 +25,7 @@ public class NetworkAdapter {
 
     public void start() {
         try {
-            socket = new Socket(HOST, PORT);
+            socket = new Socket(PropertyReader.getInstance().getHost(), PropertyReader.getInstance().getPort());
             System.out.println("Connected to server");
             in = new DataInputStream(socket.getInputStream());
             out = new DataOutputStream(socket.getOutputStream());

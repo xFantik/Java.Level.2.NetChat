@@ -363,7 +363,7 @@ public class ChatController implements Initializable {
         if (getDialog(old) != null)
             getDialog(old).setNickName(newNick);
         Platform.runLater(() -> {
-            addSystemMessageToChat(old + "сменил ник: " + newNick);
+            addSystemMessageToChat(old + " сменил ник: " + newNick);
             updateContactList();
         });
     }
