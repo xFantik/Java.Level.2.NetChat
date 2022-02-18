@@ -49,7 +49,7 @@ public class ChatController implements Initializable {
     private ObservableList<Pane> observableListContacts;
     private NetworkAdapter networkAdapter;
 
-    private static final String mainChatName = "Общий чат";
+    public static final String mainChatName = "Общий чат";
     public static final String REGEX = "&-#";
     public static String myName = "";
     public static final int myID = -7;
@@ -63,6 +63,7 @@ public class ChatController implements Initializable {
     private Image img_offline;
 
     private Parent fxmlEdit;
+
 
     @FXML
     public VBox topVBox;
@@ -86,8 +87,11 @@ public class ChatController implements Initializable {
     }
 
     public void setProp(NetworkAdapter networkAdapter) {
+
         this.networkAdapter = networkAdapter;
         inputText.requestFocus();
+        dialogsList.add(currentDialog);
+        titleText.setText(mainChatName);
     }
 
     @FXML
@@ -163,10 +167,6 @@ public class ChatController implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         currentDialog = new Dialog(mainChatName);
-        dialogsList.add(currentDialog);
-        titleText.setText(mainChatName);
-
-
         MultipleSelectionModel<Pane> langsSelectionModel = contactList.getSelectionModel();
         langsSelectionModel.selectedItemProperty().addListener((changed, oldValue, newValue) -> {
             if (newValue != null)
@@ -338,9 +338,10 @@ public class ChatController implements Initializable {
                     Dialog t = new Dialog(splitMessage[i]);
                     dialogsList.add(t);
                     t.setOnline(false);
-                    updateContactList();
+                    Platform.runLater(() -> {
+                        updateContactList();
+                    });
                     System.out.println("Добавили диалог");
-                    ;
                 }
                 d.add(new Message(getDialog(splitMessage[i]).getID(), splitMessage[i + 1]));
             }
@@ -395,8 +396,6 @@ public class ChatController implements Initializable {
 
     public void handleMessage(String inputString) {
         var splitMessage = inputString.split(REGEX);
-
-        System.out.println("Пришло сообщение: " + Arrays.toString(splitMessage));
 
         if (splitMessage[0].equals(Commands.HISTORY)) {
             receiveHistory(splitMessage);
@@ -532,4 +531,5 @@ public class ChatController implements Initializable {
         stage.setTitle("TheBestChat: " + myName);
 
     }
+
 }

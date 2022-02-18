@@ -9,6 +9,11 @@ public class PropertyReader {
     private String host;
     private String dbConnectionString;
     private int historySize;
+    private String historyPath;
+
+    public String getHistoryPath() {
+        return historyPath;
+    }
 
     private PropertyReader() {
         getPropValues();
@@ -30,7 +35,7 @@ public class PropertyReader {
             host = (properties.getProperty("server.host"));
             dbConnectionString = (properties.getProperty("datasource.url"));
             historySize = Integer.parseInt(properties.getProperty("history.size"));
-
+            historyPath= (properties.getProperty("history.path"));
         } catch (Exception e) {
             e.printStackTrace();
         }

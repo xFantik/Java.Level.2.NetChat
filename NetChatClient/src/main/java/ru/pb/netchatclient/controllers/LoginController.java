@@ -25,6 +25,7 @@ public class LoginController implements Initializable {
     private final String errorStyle = "-fx-background-color: #B0121250;";
     private boolean isRegisterView = true;
     private NetworkAdapter networkAdapter;
+    private static String login;
 
     @FXML
     public Button switchViewButton;
@@ -52,24 +53,22 @@ public class LoginController implements Initializable {
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         switchInterface();
-
     }
 
     public void connectToServer(ActionEvent actionEvent) {
         if (!checkFields())
             return;
-
         if (networkAdapter == null) {
             networkAdapter = new NetworkAdapter(this);
         }
         if (!networkAdapter.isActive()) {
             networkAdapter = new NetworkAdapter(this);
         }
-
-        if (isRegisterView)
+        if (isRegisterView) {
             networkAdapter.sendToServer(Commands.REG + ChatController.REGEX + inputLogin.getText().trim() + ChatController.REGEX + inputPass.getText() + ChatController.REGEX + inputNickName.getText().trim());
-        else
+        } else {
             networkAdapter.sendToServer(Commands.AUTH + ChatController.REGEX + inputLogin.getText().trim() + ChatController.REGEX + inputPass.getText());
+        }
     }
 
     private boolean checkFields() {
@@ -131,13 +130,10 @@ public class LoginController implements Initializable {
     }
 
     public void showError(String text) {
-        Platform.runLater(new Runnable() {
-            @Override
-            public void run() {
-                errorLabel.setText(text);
-                errorLabel.setVisible(true);
+        Platform.runLater(() -> {
+            errorLabel.setText(text);
+            errorLabel.setVisible(true);
 
-            }
         });
     }
 
@@ -151,7 +147,7 @@ public class LoginController implements Initializable {
 
 
     public void goToChat(String name) throws IOException {
-        //todo: проверка на открытое окно
+        login = inputLogin.getText().trim();
         FXMLLoader fxmlLoaderChatWindow = new FXMLLoader(ChatApplication.class.getResource("/chat.fxml"));
         Scene chatScene = new Scene(fxmlLoaderChatWindow.load(), 550, 500);
 
@@ -159,6 +155,7 @@ public class LoginController implements Initializable {
         Platform.runLater(new Runnable() {
             @Override
             public void run() {
+
                 ChatController.chatController.setProp(networkAdapter);
                 stage.setScene(chatScene);
                 stage.setTitle("TheBestChat: " + name);
@@ -166,7 +163,9 @@ public class LoginController implements Initializable {
         });
     }
 
-
+    public static String getLogin() {
+        return login;
+    }
 
     public void switchInterface() {
         hideError();

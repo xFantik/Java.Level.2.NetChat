@@ -1,6 +1,6 @@
 package ru.pb.netchatclient;
 
-import javafx.event.ActionEvent;
+
 import ru.pb.Commands;
 import ru.pb.PropertyReader;
 import ru.pb.netchatclient.controllers.*;
@@ -10,8 +10,6 @@ import java.net.Socket;
 import java.net.SocketException;
 
 public class NetworkAdapter {
-    //    private String HOST = "127.0.0.1";
-//    private int PORT = 8189;
     private DataInputStream in;
     private DataOutputStream out;
     private Thread receiverThread;
@@ -73,7 +71,6 @@ public class NetworkAdapter {
                     }
                 }
             } catch (SocketException e) {
-                e.printStackTrace();
                 System.out.println(e.getMessage());
                 if (in == null) {
                     System.out.println("ERROR: Connection to server failed");
