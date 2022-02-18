@@ -8,6 +8,7 @@ public class PropertyReader {
     private int port;
     private String host;
     private String dbConnectionString;
+    private int historySize;
 
     private PropertyReader() {
         getPropValues();
@@ -28,6 +29,7 @@ public class PropertyReader {
             port = Integer.parseInt(properties.getProperty("server.port"));
             host = (properties.getProperty("server.host"));
             dbConnectionString = (properties.getProperty("datasource.url"));
+            historySize = Integer.parseInt(properties.getProperty("history.size"));
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -43,5 +45,9 @@ public class PropertyReader {
     }
     public String  getDbConnectionName() {
         return dbConnectionString;
+    }
+
+    public int getHistorySize(){
+        return historySize;
     }
 }

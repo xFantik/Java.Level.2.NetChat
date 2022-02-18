@@ -5,6 +5,7 @@ public class Commands {
     public static final String REG = "/reg";
     public static final String AUTH = "/auth";
     public static final String AUTH_OK = "/auth_ok";
+    public static final String HISTORY = "/history";
     public static final String ERROR = "/error";
     public static final String CHANGE_NAME = "/name";
     public static final String CHANGE_PASSWORD = "/pass";

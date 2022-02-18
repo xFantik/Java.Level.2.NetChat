@@ -1,6 +1,7 @@
 package ru.pb.netchatserver;
 
 import ru.pb.Commands;
+import ru.pb.PropertyReader;
 import ru.pb.netchatserver.auth.AuthService;
 import ru.pb.netchatserver.error.WrongCredentialsException;
 
@@ -10,10 +11,13 @@ import java.io.IOException;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedList;
 
 public class ClientHandler extends Thread {
     private static final ArrayList<ClientHandler> clientsList = new ArrayList<>();
-//    private static final HashMap<Integer, String> names = new HashMap<>();
+    //    private static final HashMap<Integer, String> names = new HashMap<>();
+    private static LinkedList<String> history = new LinkedList<>();
+    ;
 
     private static final String REGEX = "&-#";
 
@@ -23,6 +27,7 @@ public class ClientHandler extends Thread {
     private String nickName = "";
     private AuthService authService;
     private String login = "";
+
 
     public ClientHandler(Socket socket, AuthService authService) {
         this.authService = authService;
@@ -83,7 +88,10 @@ public class ClientHandler extends Thread {
                         }
                     }
 
-                    case Commands.MESSAGE_GROUP -> sendMessageToAll(Commands.MESSAGE_GROUP + REGEX + nickName + REGEX + splitMessage[1]);
+                    case Commands.MESSAGE_GROUP -> {
+                        sendMessageToAll(Commands.MESSAGE_GROUP + REGEX + nickName + REGEX + splitMessage[1]);
+                        writeHistory(nickName + REGEX + splitMessage[1]);
+                    }
                     case Commands.MESSAGE_PRIVATE -> sendMessage(Commands.MESSAGE_PRIVATE + REGEX + nickName + REGEX + splitMessage[2],
                             getHandler(splitMessage[1]));
                     default -> System.out.println("Нет обработчика команды " + (splitMessage[0]));
@@ -175,6 +183,7 @@ public class ClientHandler extends Thread {
                         clientsList.add(this);
                         sendMessageToAll(Commands.NEW_USER + REGEX + nickname);
                         sendReplyMessage(Commands.AUTH_OK + REGEX + nickname + REGEX + getOnlineClients());
+                        sendReplyMessage(Commands.HISTORY + REGEX + getHistory());
                         return;
                     }
                 } else if ((parsedAuthMessage[0].equals(Commands.REG))) {
@@ -221,6 +230,24 @@ public class ClientHandler extends Thread {
             }
         }
         return (sb.toString());
+    }
+
+    private void writeHistory(String msg) {
+        history.add(msg);
+        if (history.size() > PropertyReader.getInstance().getHistorySize()) {
+            history.remove(0);
+        }
+        System.out.println(history);
+
+    }
+
+    private String getHistory() {
+        var sb = new StringBuilder();
+        for (String msg : history) {
+            sb.append(msg);
+            sb.append(REGEX);
+        }
+        return sb.toString();
     }
 
     private ClientHandler getHandler(String nickName) {

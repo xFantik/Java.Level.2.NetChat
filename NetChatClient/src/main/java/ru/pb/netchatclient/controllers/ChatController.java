@@ -191,10 +191,12 @@ public class ChatController implements Initializable {
     }
 
     private Dialog getDialog(String nickName) {
+        if (nickName.equals(myName)) ;
         for (Dialog d : dialogsList) {
             if (d.getNickName().equals(nickName))
                 return d;
         }
+
         return null;
     }
 
@@ -208,8 +210,11 @@ public class ChatController implements Initializable {
         currentDialog = getDialog(contactName);                    //Подгружаем сохраненный диалог
         if (currentDialog.hasNewMessages()) {                       //Если были новые сообщения, удаляем зеленую точку
             Pane itemOfContactList = (Pane) contactList.getSelectionModel().getSelectedItem();
-            itemOfContactList.getChildren().remove(1);
-            itemOfContactList.getChildren().add(getIcon_view(currentDialog));
+            if (itemOfContactList != null) {
+                itemOfContactList.getChildren().remove(1);
+                itemOfContactList.getChildren().add(getIcon_view(currentDialog));
+
+            }
         }
 
         if (currentDialog.getNickName().equals(mainChatName)) {
@@ -313,9 +318,8 @@ public class ChatController implements Initializable {
 
     public void receiveContactList(String[] contactString) {
 
-        if (contactString[0].equals(Commands.AUTH_OK)) {
-            myName = contactString[1];
-        }
+        myName = contactString[1];
+
         for (int i = 2; i < contactString.length; i++) {
             if (getDialog(contactString[i]) == null) {
                 dialogsList.add(new Dialog(contactString[i]));
@@ -323,6 +327,27 @@ public class ChatController implements Initializable {
         }
         updateContactList();
     }
+
+    private void receiveHistory(String[] splitMessage) {
+        Dialog d = getDialog(mainChatName);
+        for (int i = 1; i < splitMessage.length; i += 2) {
+            if (splitMessage[i].equals(myName)) {
+                d.add(new Message(myID, splitMessage[i + 1]));
+            } else {
+                if (getDialog(splitMessage[i]) == null) {
+                    Dialog t = new Dialog(splitMessage[i]);
+                    dialogsList.add(t);
+                    t.setOnline(false);
+                    updateContactList();
+                    System.out.println("Добавили диалог");
+                    ;
+                }
+                d.add(new Message(getDialog(splitMessage[i]).getID(), splitMessage[i + 1]));
+            }
+        }
+        loadMessagesToChat(mainChatName);
+    }
+
 
     private void updateContactList() {
         if (observableListContacts == null) {
@@ -370,22 +395,47 @@ public class ChatController implements Initializable {
 
     public void handleMessage(String inputString) {
         var splitMessage = inputString.split(REGEX);
+
         System.out.println("Пришло сообщение: " + Arrays.toString(splitMessage));
-        Dialog dialog_to_write = null;
 
-        if (splitMessage[0].equals(Commands.MESSAGE_GROUP)) {
-            dialog_to_write = getDialog(mainChatName);
+        if (splitMessage[0].equals(Commands.HISTORY)) {
+            receiveHistory(splitMessage);
 
+        } else if (splitMessage[0].equals(Commands.NEW_USER)) {
+            newContact(splitMessage[1]);
+        } else if (splitMessage[0].equals(Commands.USER_OFFLINE)) {
+            contactOffline(splitMessage[1]);
+        } else if (splitMessage[0].equals(Commands.SET_PASSWORD_SUCCESS)) {
+            ChangeController.changeController.actionClose(new ActionEvent());
+            showSuccess("Пароль успешно изменён!");
+
+        } else if (splitMessage[0].equals(Commands.SET_PASSWORD_ERROR)) {
+            ChangeController.changeController.showError(splitMessage[1]);
+
+        } else if (splitMessage[0].equals(Commands.SET_NAME_SUCCESS)) {
+            ChangeController.changeController.actionClose(new ActionEvent());
+            showSuccess("Ник успешно изменён!");
+            ChatController.myName = splitMessage[1];
+
+
+        } else if (splitMessage[0].equals(Commands.SET_NAME_ERROR)) {
+            ChangeController.changeController.showError(splitMessage[1]);
+        } else if (splitMessage[0].equals(Commands.CHANGE_NAME)) {
+            changeNick(splitMessage[1], splitMessage[2]);
+        } else if (splitMessage[0].equals(Commands.MESSAGE_GROUP)) {
+            handleIncomingMessage(getDialog(mainChatName), splitMessage[1], splitMessage[2]);
         } else if (splitMessage[0].equals(Commands.MESSAGE_PRIVATE)) {
-            dialog_to_write = getDialog(splitMessage[1]);
+            handleIncomingMessage(getDialog(splitMessage[1]), splitMessage[1], splitMessage[2]);
 
         } else {
             System.out.println("Неизвестный префикс сообщения");
         }
+    }
 
-        Message m = new Message(getDialog(splitMessage[1]).getID(), splitMessage[2]);
+    private void handleIncomingMessage(Dialog dialog_to_write, String name, String text) {
+
+        Message m = new Message(getDialog(name).getID(), text);
         dialog_to_write.add(m);
-
         Dialog finalD = dialog_to_write;
         Platform.runLater(() -> {
             player_receive.stop();
@@ -396,6 +446,7 @@ public class ChatController implements Initializable {
             updateContactList();
         });
     }
+
 
     private void goToLoginWindow() {
         Platform.runLater(new Runnable() {
