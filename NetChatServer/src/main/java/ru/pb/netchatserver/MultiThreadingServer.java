@@ -7,9 +7,12 @@ import ru.pb.PropertyReader;
 
 import java.io.IOException;
 import java.net.ServerSocket;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class MultiThreadingServer {
     private AuthService authService;
+    ExecutorService executorService;
 
     public static void main(String[] args) {
 //        new MultiThreadingServer(new InMemoryAuthService()).start();
@@ -29,10 +32,11 @@ public class MultiThreadingServer {
         }
 
         try (var serverSocket = new ServerSocket(PropertyReader.getInstance().getPort())) {
+            executorService = Executors.newCachedThreadPool();
             System.out.println("Server started on "+PropertyReader.getInstance().getPort()+" port");
             System.out.println("Waiting or connection...");
             while (true) {
-                new ClientHandler(serverSocket.accept(), authService).start();
+                executorService.execute(new ClientHandler(serverSocket.accept(), authService));
 //                System.out.print("Client connected");
             }
         } catch (IOException e) {
