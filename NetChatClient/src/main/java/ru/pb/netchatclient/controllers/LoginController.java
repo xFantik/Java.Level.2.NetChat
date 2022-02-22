@@ -62,7 +62,11 @@ public class LoginController implements Initializable {
             networkAdapter = new NetworkAdapter(this);
         }
         if (!networkAdapter.isActive()) {
-            networkAdapter = new NetworkAdapter(this);
+            networkAdapter.start();
+            if (!networkAdapter.isActive()){
+                System.out.println("Не удалось подкючиться к серверу.");
+                return;
+            }
         }
         if (isRegisterView) {
             networkAdapter.sendToServer(Commands.REG + ChatController.REGEX + inputLogin.getText().trim() + ChatController.REGEX + inputPass.getText() + ChatController.REGEX + inputNickName.getText().trim());
@@ -176,8 +180,8 @@ public class LoginController implements Initializable {
             switchViewButton.setText("Go to Login");
             confirmButton.setText("Create new account");
         } else {
-
             switchViewButton.setText("New user");
+            confirmButton.setText("Connect");
             mainVBox.getChildren().remove(confirmPane);
             mainVBox.getChildren().remove(nickPane);
         }

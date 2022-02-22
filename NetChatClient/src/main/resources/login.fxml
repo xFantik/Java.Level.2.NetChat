@@ -91,21 +91,5 @@
     <right>
         <Pane prefWidth="150" />
     </right>
-    <bottom>
-        <HBox>
-            <padding>
-                <Insets left="30.0" right="30.0" bottom="10"/>
-            </padding>
-            <Label text="Сервер: " prefHeight="25.0"/>
-            <TextField HBox.hgrow="ALWAYS" fx:id="inputServer" editable="false" text="127.0.0.1"/>
-            <Label text=":" prefHeight="25.0">
-                <padding>
-                    <Insets left="3.0" right="3.0"/>
-                </padding>
-            </Label>
-            <TextField HBox.hgrow="ALWAYS" fx:id="inputPort" prefWidth="50" editable="false" text="8189"/>
 
-        </HBox>
-
-    </bottom>
 </BorderPane>

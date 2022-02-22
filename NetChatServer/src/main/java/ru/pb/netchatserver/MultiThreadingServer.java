@@ -29,7 +29,7 @@ public class MultiThreadingServer {
         }
 
         try (var serverSocket = new ServerSocket(PropertyReader.getInstance().getPort())) {
-            System.out.println("Server started");
+            System.out.println("Server started on "+PropertyReader.getInstance().getPort()+" port");
             System.out.println("Waiting or connection...");
             while (true) {
                 new ClientHandler(serverSocket.accept(), authService).start();

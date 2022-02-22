@@ -237,8 +237,7 @@ public class ClientHandler extends Thread {
         if (history.size() > PropertyReader.getInstance().getHistorySize()) {
             history.remove(0);
         }
-        System.out.println(history);
-
+//        System.out.println(history);
     }
 
     private String getHistory() {

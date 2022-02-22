@@ -19,11 +19,11 @@ public class NetworkAdapter {
 
     public NetworkAdapter(LoginController p) {
         loginController = p;
-        start();
     }
 
     public void start() {
         try {
+            System.out.println("Подключаемся к серверу: "+ PropertyReader.getInstance().getHost()+":"+ PropertyReader.getInstance().getPort());
             socket = new Socket(PropertyReader.getInstance().getHost(), PropertyReader.getInstance().getPort());
             System.out.println("Connected to server");
             in = new DataInputStream(socket.getInputStream());
@@ -52,6 +52,7 @@ public class NetworkAdapter {
         }
         System.out.println("Client stopped");
     }
+
     private void startReceiverThread() {
         receiverThread = new Thread(() -> {
             try {
@@ -110,8 +111,10 @@ public class NetworkAdapter {
     }
 
     public boolean isActive() {
-        return (!socket.isClosed());
-
+        if (socket != null) {
+            return (!socket.isClosed());
+        }
+        return false;
     }
 }
 

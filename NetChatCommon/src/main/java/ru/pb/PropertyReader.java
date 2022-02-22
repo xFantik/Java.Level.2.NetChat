@@ -1,5 +1,6 @@
 package ru.pb;
 
+import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.Properties;
 
@@ -27,7 +28,9 @@ public class PropertyReader {
     }
 
     public void getPropValues() {
+//        var propFileName = "./config/application.properties";
         var propFileName = "application.properties";
+//        try (InputStream inputStream = new FileInputStream(propFileName)) {
         try (InputStream inputStream = getClass().getClassLoader().getResourceAsStream(propFileName)) {
             var properties = new Properties();
             properties.load(inputStream);
@@ -37,7 +40,8 @@ public class PropertyReader {
             historySize = Integer.parseInt(properties.getProperty("history.size"));
             historyPath= (properties.getProperty("history.path"));
         } catch (Exception e) {
-            e.printStackTrace();
+            System.out.println("Не удалось считать настройки: " +e.getMessage());
+
         }
     }
 
