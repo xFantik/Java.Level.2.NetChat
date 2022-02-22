@@ -156,11 +156,10 @@ public class LoginController implements Initializable {
         Scene chatScene = new Scene(fxmlLoaderChatWindow.load(), 550, 500);
 
         Stage stage = (Stage) rootAnchorPane.getScene().getWindow();
+        ChatController.chatController.setProp(networkAdapter);
         Platform.runLater(new Runnable() {
             @Override
             public void run() {
-
-                ChatController.chatController.setProp(networkAdapter);
                 stage.setScene(chatScene);
                 stage.setTitle("TheBestChat: " + name);
             }
