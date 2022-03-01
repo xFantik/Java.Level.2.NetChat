@@ -52,6 +52,7 @@ public class MultiThreadingServer {
 
     private void shutdown() throws IOException {
         authService.stop();
+        executorService.shutdownNow();
         System.out.println("Server stopped");
     }
 }
