@@ -1,9 +1,12 @@
 package ru.pb.netchatserver.auth;
 
+import lombok.extern.log4j.Log4j2;
 import ru.pb.netchatserver.error.*;
 import ru.pb.PropertyReader;
+
 import java.sql.*;
 
+@Log4j2
 public class MySQLAuthService implements AuthService {
     private static Connection connection;
     private static Statement statement;
@@ -25,9 +28,10 @@ public class MySQLAuthService implements AuthService {
     public void start() throws AuthConnectException {
         try {
             connect();
+
         } catch (SQLException e) {
             e.printStackTrace();
-            throw new AuthConnectException(e.getMessage());
+            throw new AuthConnectException("Ошибка запуска сервиса авторизации: " + e.getMessage());
         }
         try {
             createTable();
@@ -133,11 +137,15 @@ public class MySQLAuthService implements AuthService {
     }
 
     private void connect() throws SQLException {
+        log.info("Сервис аторизации подключается к БД.. ");
         connection = DriverManager.getConnection(PropertyReader.getInstance().getDbConnectionName());
         statement = connection.createStatement();
+        log.info("Сервис аторизации подключён к БД (" + PropertyReader.getInstance().getDbConnectionName() + ")");
+
     }
 
     private void createTable() throws SQLException {
+        log.trace("Проверка наличия (создание) базы пользователей");
         statement.execute(CREATE_REQUEST);
         psGetByLogin = connection.prepareStatement(statementGetByLogin);
         {                                   //создание тестовых пользователей
@@ -152,6 +160,7 @@ public class MySQLAuthService implements AuthService {
     }
 
     private void disconnect() {
+        log.info("Отключение сервиса авторизации от БД");
         try {
             if (statement != null) statement.close();
         } catch (SQLException e) {
@@ -189,6 +198,7 @@ public class MySQLAuthService implements AuthService {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+        log.info("Сервис авторизации отключен от БД");
     }
 
 

@@ -1,5 +1,6 @@
 package ru.pb.netchatserver;
 
+import lombok.extern.log4j.Log4j2;
 import ru.pb.Commands;
 import ru.pb.PropertyReader;
 import ru.pb.netchatserver.auth.AuthService;
@@ -13,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 
+@Log4j2
 public class ClientHandler extends Thread {
     private static final ArrayList<ClientHandler> clientsList = new ArrayList<>();
     //    private static final HashMap<Integer, String> names = new HashMap<>();
@@ -35,10 +37,9 @@ public class ClientHandler extends Thread {
             this.socket = socket;
             in = new DataInputStream(socket.getInputStream());
             out = new DataOutputStream(socket.getOutputStream());
-            System.out.println("Клиент подключен." + clientsList.size());
+            log.info("Клиент " + clientsList.size() + "подключен.");
         } catch (IOException e) {
-            e.printStackTrace();
-            System.out.println("WARNING: Can't initialise client connection");
+            log.warn("Can't initialise client connection");
             interrupt();
         }
     }
@@ -51,12 +52,13 @@ public class ClientHandler extends Thread {
                 String message = in.readUTF();
                 //int fromIndex = clientsList.indexOf(this);
                 if (message.length() == 0) {
-                    System.out.println("пустое сообщние");
+                    log.warn("Получено пустое сообщение");
                     continue;
                 }
 
                 var splitMessage = message.split(REGEX);
-                System.out.println(Arrays.toString(splitMessage));
+                log.trace("Получено сообщение (от " + nickName + "): " + message);
+                log.debug("Разбитое сообщение (от " + nickName + "): " + Arrays.toString(splitMessage));
 
 
                 switch (splitMessage[0]) {
@@ -65,7 +67,7 @@ public class ClientHandler extends Thread {
                             String oldNick = nickName;
                             if (authService.changeNick(nickName, splitMessage[1])) {
                                 nickName = splitMessage[1];
-                                System.out.println("Клиент " + oldNick + " установил имя " + nickName);
+                                log.info("Клиент " + oldNick + " сменил ник на " + nickName);
                                 sendReplyMessage(Commands.SET_NAME_SUCCESS + REGEX + nickName);
                                 sendMessageToAll(Commands.CHANGE_NAME + REGEX + oldNick + REGEX + nickName);
                             }
@@ -78,7 +80,7 @@ public class ClientHandler extends Thread {
                     case Commands.CHANGE_PASSWORD -> {
                         try {
                             if (authService.changePassword(login, splitMessage[1], splitMessage[2])) {
-                                System.out.println("Клиент " + nickName + " сменил пароль ");
+                                log.info("Клиент " + nickName + " сменил пароль ");
                                 sendReplyMessage(Commands.SET_PASSWORD_SUCCESS);
                             }
                         } catch (WrongCredentialsException e) {
@@ -94,19 +96,20 @@ public class ClientHandler extends Thread {
                     }
                     case Commands.MESSAGE_PRIVATE -> sendMessage(Commands.MESSAGE_PRIVATE + REGEX + nickName + REGEX + splitMessage[2],
                             getHandler(splitMessage[1]));
-                    default -> System.out.println("Нет обработчика команды " + (splitMessage[0]));
+                    default -> log.warn("Нет обработчика команды " + (splitMessage[0]));
                 }
 
             }
         } catch (IOException e) {
             sendMessageToAll(Commands.USER_OFFLINE + REGEX + this.nickName);
+            log.info("Пользователь " + this.nickName + " отключился");
             clientsList.remove(this);
             interrupt();
         }
     }
 
     private void sendMessageToAll(String message) {
-        System.out.println("Рассылка всем:");
+        log.trace("Рассылка всем: " + message);
         int from = clientsList.indexOf(this);
         for (int i = 0; i < clientsList.size(); i++) {                      //рассылка всем
             if (i == from) {                                                        // (себя прпускаем)
@@ -114,7 +117,8 @@ public class ClientHandler extends Thread {
             }
             sendMessage(message, clientsList.get(i));
         }
-        System.out.println("---------------------:");
+
+
     }
 
 
@@ -123,7 +127,7 @@ public class ClientHandler extends Thread {
     }
 
     private static void sendMessage(String message, ClientHandler clientHandler) {
-        System.out.println("Отправка клиенту " + clientHandler.nickName + ": " + message);
+        log.trace("Отправка клиенту " + clientHandler.nickName + ": " + message);
 
         if (!clientHandler.isInterrupted())
             try {
@@ -131,36 +135,38 @@ public class ClientHandler extends Thread {
             } catch (IOException e) {
                 clientHandler.interrupt();
                 clientsList.remove(clientHandler);
-                e.printStackTrace();
+                log.throwing(e);
             }
     }
 
 
     private void authorize() {
-        System.out.println("Authorizing");
+
+        log.info("Начата авторизация клиента");
         new Thread(() -> {
             try {
                 Thread.sleep(5000);
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                log.throwing(e);
             }
-            if (!clientsList.contains(this)) {
-                try {
-                    socket.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
+            try {
+                if (!clientsList.contains(this)) {
+                    if (!socket.isClosed()) {
+                        socket.close();
+                        log.info("Неактивный клиент отключен");
+                    }
                 }
-                this.interrupt();
-                System.out.println("Процесс авторизации убит");
+            } catch (IOException e) {
+                log.throwing(e);
             }
         }).start();
 
         while (!isInterrupted()) {
             try {
                 var message = in.readUTF();
-                System.out.println(message);
+                log.trace("Сообщение авторизации: " + message);
                 var parsedAuthMessage = message.split(REGEX);
-                System.out.println(Arrays.toString(parsedAuthMessage));
+                log.debug("Сообщение авторизации: " + Arrays.toString(parsedAuthMessage));
                 if (parsedAuthMessage[0].equals(Commands.AUTH)) {
                     var response = "";
                     String nickname = null;
@@ -169,12 +175,12 @@ public class ClientHandler extends Thread {
                         nickname = authService.authorizeUserByLoginAndPassword(parsedAuthMessage[1], parsedAuthMessage[2]);
                     } catch (WrongCredentialsException e) {
                         response = Commands.ERROR + REGEX + e.getMessage();
-                        System.out.println("Wrong credentials, login " + parsedAuthMessage[1]);
+                        log.info("Wrong credentials, login " + parsedAuthMessage[1]);
                     }
 
                     if (isNickBusy(nickname)) {
                         response = Commands.ERROR + REGEX + "this client already connected";
-                        System.out.println("Nick busy " + nickname);
+                        log.info("Попытка повторного подключени клиента " + nickname);
                     }
                     if (!response.equals("")) {
                         sendReplyMessage(response);
@@ -194,7 +200,8 @@ public class ClientHandler extends Thread {
                         nickname = authService.createNewUser(parsedAuthMessage[1], parsedAuthMessage[2], parsedAuthMessage[3]);
                     } catch (WrongCredentialsException e) {
                         sendReplyMessage(Commands.ERROR + REGEX + e.getMessage());
-                        System.out.println("Ошибка регистрации: " + e.getMessage());
+
+                        log.error("Ошибка регистрации: " + e.getMessage());
                     }
                     if (nickname != null) {
                         this.nickName = nickname;
@@ -206,7 +213,12 @@ public class ClientHandler extends Thread {
                 }
 
             } catch (IOException e) {
-                e.printStackTrace();
+                log.info("Клиент отключился");
+                try {
+                    socket.close();
+                } catch (IOException ex) {
+                    log.throwing(ex);
+                }
                 interrupt();
             }
         }
@@ -233,14 +245,15 @@ public class ClientHandler extends Thread {
     }
 
     private void writeHistory(String msg) {
+        log.trace("Сообщение записано в историю: " + msg);
         history.add(msg);
         if (history.size() > PropertyReader.getInstance().getHistorySize()) {
             history.remove(0);
         }
-//        System.out.println(history);
     }
 
     private String getHistory() {
+        log.trace("Подготовка истории сообщений для отправки");
         var sb = new StringBuilder();
         for (String msg : history) {
             sb.append(msg);
@@ -257,6 +270,4 @@ public class ClientHandler extends Thread {
         }
         return null;
     }
-
-
 }
